@@ -66,6 +66,7 @@ const DECKS = {
   ],
   "Spicy": [
     {title:"Tegevus",desc:"Sosista mulle kõrva seksikalt ühe pesuvahendi nimi.",foot:"• spicy"},
+    {title:"Tegevus",desc:"Kas sina oled kunagi kellegilt maasika saanud või kellelegi maasika teinud?",foot:"• spicy"},
     {title:"Küsimus",desc:"Mis on su kõige julgemalt saadetud sõnum?",foot:"• spicy"},
     {title:"Küsimus",desc:"Mis on su lemmik viis flirtida?",foot:"• spicy"},
     {title:"Küsimus",desc:"Kas sa oled pigem dominante või passivne voodis?",foot:"• spicy"},

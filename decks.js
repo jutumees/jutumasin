@@ -39,7 +39,7 @@ const DECKS = {
     {title:"Küsimus",desc:"Mis sind viimati marru ajas?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Parim ja halvim moment seeaasta?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Parim asi mis sa oma vanematelt suhetest oled õppinud?",foot:"• kohtingu küsimused"},
-    {title:"Küsimus",desc:"Kas sul on eelnevad suhted on olnud pikemad või lühikesemad?",foot:"• kohtingu küsimused"},
+    {title:"Küsimus",desc:"Kas sul on eelnevad suhted olnud pikemad või lühikesed?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Kas sul on kedagi, kellega sa kahetsed, et magasid?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Kas sul on kuulsus, kellega sa kohe magaksid, kui võimalus tekiks?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Mis on asi, mida inimesed sinust alguses valesti eeldavad?",foot:"• kohtingu küsimused"},

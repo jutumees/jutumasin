@@ -72,11 +72,24 @@ function buildMenu(){
     { title:"Ajalugu", sub:`• mis sa swipinud oled (${hTotal})`, action:()=>openDeckPicker("history") },
     { title:"Parimad", sub:`• sinu likeitud (${bTotal})`, action:()=>openDeckPicker("best") }
   ];
+  const icons = {
+    "Main MIX": "assets/mix.png",
+    "Dating": "assets/dating.png",
+    "Spicy": "assets/spicy.png",
+    "Couples": "assets/couples.png",
+    "Party": "assets/party.png",
+    "Ajalugu": "assets/history.png",
+    "Parimad": "assets/best.png"
+  };
   el.menuGrid.innerHTML = "";
   items.forEach(it=>{
+    it.icon = icons[it.title];
     const c=document.createElement("div");
     c.className="choice" + (it.big ? " big" : "");
-    c.innerHTML = `<h3>${it.title}</h3><p>${it.sub}</p>`;
+    c.innerHTML = `
+      <img class="choiceIcon" src="${it.icon}" alt="" aria-hidden="true">
+      <div class="choiceText"><h3>${it.title}</h3><p>${it.sub}</p></div>
+    `;
     c.addEventListener("click", it.action);
     el.menuGrid.appendChild(c);
   });
@@ -186,6 +199,18 @@ function applyCardTint(innerEl, card){
   innerEl.style.setProperty("--cardB", t.B);
 }
 
+function deckIconForCard(card){
+  const key = card.__deck || State.viewDeckKey || State.deckKey;
+  const icons = {
+    MIX: "assets/mix.png",
+    Dating: "assets/dating.png",
+    Spicy: "assets/spicy.png",
+    Couples: "assets/couples.png",
+    Party: "assets/party.png"
+  };
+  return icons[key] || icons[State.deckKey] || icons[State.viewDeckKey] || "";
+}
+
 function makeCard(card, isBehind, mode){
   const wrap = document.createElement("div");
   wrap.className = "swipeCard";
@@ -195,11 +220,15 @@ function makeCard(card, isBehind, mode){
   const inner = document.createElement("div");
   inner.className = "inner";
   applyCardTint(inner, card);
+  const footIcon = deckIconForCard(card);
 
   inner.innerHTML = `
     <div class="title">${card.title}</div>
     <div class="desc">${card.desc}</div>
-    <div class="foot">${card.foot || ""}</div>
+    <div class="foot">
+      ${footIcon ? `<img class="cardTypeIcon" src="${footIcon}" alt="" aria-hidden="true">` : ""}
+      <span>${card.foot || ""}</span>
+    </div>
   `;
   wrap.appendChild(inner);
 
@@ -226,47 +255,79 @@ function makeCard(card, isBehind, mode){
 
 function attachSwipeGame(cardEl){
   let sx=0, sy=0, dx=0, dy=0, dragging=false;
+  let rafId=0;
+
+  function applyDrag(){
+    rafId=0;
+    const rot = clamp(dx/14, -18, 18);
+    cardEl.style.transform = `translate3d(${dx}px, ${dy}px, 0) rotate(${rot}deg)`;
+  }
+
+  function scheduleDrag(){
+    if(!rafId) rafId = requestAnimationFrame(applyDrag);
+  }
+
+  function finishDrag(){
+    if(rafId){
+      cancelAnimationFrame(rafId);
+      rafId=0;
+      applyDrag();
+    }
+    cardEl.classList.remove("dragging");
+    document.body.classList.remove("isDraggingCard");
+  }
 
   cardEl.addEventListener("pointerdown", (e)=>{
     if(e.target && e.target.closest && e.target.closest(".starBtn")) return;
     dragging=true;
     cardEl.setPointerCapture(e.pointerId);
     sx=e.clientX; sy=e.clientY;
+    dx=0; dy=0;
+    cardEl.classList.add("dragging");
+    document.body.classList.add("isDraggingCard");
     cardEl.style.transition="none";
   });
 
   cardEl.addEventListener("pointermove", (e)=>{
     if(!dragging) return;
     dx=e.clientX-sx; dy=e.clientY-sy;
-    const rot = clamp(dx/14, -18, 18);
-    cardEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+    scheduleDrag();
   });
 
   cardEl.addEventListener("pointerup", ()=>{
     if(!dragging) return;
     dragging=false;
+    finishDrag();
     cardEl.style.transition="transform 180ms ease, opacity 180ms ease";
 
     const tX=120, tY=130;
     if(dy < -tY && Math.abs(dx) < 140) markBestAndNext(cardEl);
     else if(dx > tX) nextCard(cardEl);
     else if(dx < -tX) prevCard();
-    else cardEl.style.transform="translate(0,0) rotate(0deg)";
+    else cardEl.style.transform="translate3d(0,0,0) rotate(0deg)";
+  });
+
+  cardEl.addEventListener("pointercancel", ()=>{
+    if(!dragging) return;
+    dragging=false;
+    finishDrag();
+    cardEl.style.transition="transform 180ms ease, opacity 180ms ease";
+    cardEl.style.transform="translate3d(0,0,0) rotate(0deg)";
   });
 }
 
 function nextCard(cardEl){
-  if(State.index >= State.cards.length - 1) { cardEl.style.transform="translate(0,0) rotate(0deg)"; return; }
+  if(State.index >= State.cards.length - 1) { cardEl.style.transform="translate3d(0,0,0) rotate(0deg)"; return; }
   animateOut(cardEl, 520, -40, 18);
   pushHistory("EDASI");
-  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 170);
+  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 190);
 }
 
 function markBestAndNext(cardEl){
   if(State.index >= State.cards.length) return;
   animateOut(cardEl, 0, -620, 0);
   pushHistory("PARIM", true);
-  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 170);
+  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 190);
 }
 
 function prevCard(){
@@ -279,7 +340,7 @@ function prevCard(){
 }
 
 function animateOut(cardEl, tx, ty, rot){
-  cardEl.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg)`;
+  cardEl.style.transform = `translate3d(${tx}px, ${ty}px, 0) rotate(${rot}deg)`;
   cardEl.style.opacity = "0";
 }
 
@@ -319,24 +380,77 @@ function undoHistoryForIndex(idx){
 
 function attachSwipeView(cardEl){
   let sx=0, dx=0, dragging=false;
+  let rafId=0;
+
+  function applyDrag(){
+    rafId=0;
+    const rot = clamp(dx/18, -12, 12);
+    cardEl.style.transform = `translate3d(${dx}px, 0px, 0) rotate(${rot}deg)`;
+  }
+
+  function scheduleDrag(){
+    if(!rafId) rafId = requestAnimationFrame(applyDrag);
+  }
+
+  function finishDrag(){
+    if(rafId){
+      cancelAnimationFrame(rafId);
+      rafId=0;
+      applyDrag();
+    }
+    cardEl.classList.remove("dragging");
+    document.body.classList.remove("isDraggingCard");
+  }
+
   cardEl.addEventListener("pointerdown",(e)=>{
     dragging=true; cardEl.setPointerCapture(e.pointerId);
-    sx=e.clientX; cardEl.style.transition="none";
+    sx=e.clientX; dx=0;
+    cardEl.classList.add("dragging");
+    document.body.classList.add("isDraggingCard");
+    cardEl.style.transition="none";
   });
   cardEl.addEventListener("pointermove",(e)=>{
     if(!dragging) return;
     dx=e.clientX-sx;
-    const rot = clamp(dx/18, -12, 12);
-    cardEl.style.transform = `translate(${dx}px, 0px) rotate(${rot}deg)`;
+    scheduleDrag();
   });
   cardEl.addEventListener("pointerup",()=>{
     if(!dragging) return;
-    dragging=false; cardEl.style.transition="transform 180ms ease, opacity 180ms ease";
+    dragging=false; finishDrag();
+    cardEl.style.transition="transform 180ms ease, opacity 180ms ease";
     const t=110;
-    if(dx<-t) viewStep(-1);
-    else if(dx>t) viewStep(+1);
-    else cardEl.style.transform = "translate(0,0) rotate(0deg)";
+    if(dx<-t) swipeViewStep(cardEl, -1);
+    else if(dx>t) swipeViewStep(cardEl, +1);
+    else cardEl.style.transform = "translate3d(0,0,0) rotate(0deg)";
   });
+  cardEl.addEventListener("pointercancel",()=>{
+    if(!dragging) return;
+    dragging=false; finishDrag();
+    cardEl.style.transition="transform 180ms ease, opacity 180ms ease";
+    cardEl.style.transform = "translate3d(0,0,0) rotate(0deg)";
+  });
+}
+
+function swipeViewStep(cardEl, dir){
+  const dk = State.viewDeckKey;
+  const mode = State.viewMode;
+  const list = (mode==="history") ? (State.histories[dk] || []) : (State.bests[dk] || []);
+  if(!list.length) return;
+
+  const nextPos = clamp(State.viewPos + dir, 0, list.length - 1);
+  if(nextPos === State.viewPos){
+    cardEl.style.transform = "translate3d(0,0,0) rotate(0deg)";
+    return;
+  }
+
+  const tx = dir > 0 ? 520 : -520;
+  cardEl.style.transform = `translate3d(${tx}px, 0, 0) rotate(${dir > 0 ? 12 : -12}deg)`;
+  cardEl.style.opacity = "0";
+  setTimeout(()=>{
+    State.viewPos = nextPos;
+    renderViewCard();
+    updateViewPos();
+  }, 190);
 }
 
 function renderViewCard(){

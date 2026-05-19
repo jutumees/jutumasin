@@ -68,6 +68,10 @@ body{
   will-change: background-position;
   animation: heartsUp 330s linear infinite;
 }
+body.isDraggingCard .bgHearts,
+body.isDraggingCard .bgHearts2{
+  animation-play-state: paused;
+}
 @keyframes heartsUp{ from{ background-position: 0 0; } to{ background-position: 0 -2600px; } }
 
 .app{
@@ -82,7 +86,7 @@ header{
   padding:14px 16px 10px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:8px;
-  border-bottom:1px solid rgba(255,77,166,.22);
+  border-bottom:0;
   background: linear-gradient(90deg, rgba(255,77,166,.18), rgba(0,0,0,.18));
   min-height:86px;
   text-align:center;
@@ -90,31 +94,28 @@ header{
 .brandBtn{
   appearance:none;background:transparent;border:none;padding:0;cursor:pointer;
   user-select:none;-webkit-user-select:none;color:inherit;
+  line-height:0;
 }
-.brand{
-  font-weight:950; letter-spacing:.7px; text-transform:uppercase;
-  background: linear-gradient(90deg, rgba(255,77,166,1), rgba(255,233,245,.95), rgba(255,31,143,1));
-  background-size: 200% 100%;
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  text-shadow: 0 10px 40px rgba(255,77,166,.12);
-  font-size:22px;
-  transition: font-size 140ms ease, transform 140ms ease, filter 140ms ease;
+.brandLogo{
+  display:block;
+  width:min(188px, 58vw);
+  height:auto;
+  filter: drop-shadow(0 10px 34px rgba(255,77,166,.18));
+  transition: width 140ms ease, transform 140ms ease, filter 140ms ease;
   user-select:none;-webkit-user-select:none;
-  line-height:1;
 }
-body[data-view="menu"] .brand{ font-size:44px; transform: translateY(1px); }
+body[data-view="menu"] .brandLogo{ width:min(322px, 82vw); transform: translateY(1px); }
 
-@keyframes logoShift { 0%{background-position:0% 50%} 100%{background-position:100% 50%} }
-body[data-view="menu"] .brandBtn:hover .brand{
-  animation: logoShift 1.8s ease-in-out infinite alternate;
-  text-shadow: 0 0 18px rgba(255,77,166,.45);
+body[data-view="menu"] .brandBtn:hover .brandLogo{
+  filter: drop-shadow(0 0 18px rgba(255,77,166,.45));
 }
 .tagline{
   max-width: 460px;
-  color: rgba(255,233,245,.86);
-  font-weight:800;
-  font-size:12.5px;
-  line-height:1.25;
+  color: rgba(255,233,245,.72);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  font-weight:400;
+  font-size:13px;
+  line-height:1.45;
   user-select:none;-webkit-user-select:none;
   display:none;
 }
@@ -134,8 +135,8 @@ body[data-view="menu"] main{ padding-bottom: 0; }
   padding:16px; border-radius:var(--r);
   background: linear-gradient(180deg, rgba(255,77,166,.10), rgba(0,0,0,.26));
   border:1px solid rgba(255,77,166,.22);
-  cursor:pointer; min-height:96px;
-  display:flex; flex-direction:column; justify-content:center;
+  cursor:pointer; min-height:104px;
+  display:grid; grid-template-columns:52px minmax(0,1fr); align-items:center; gap:12px;
   user-select:none;-webkit-user-select:none;
   transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
 }
@@ -143,11 +144,18 @@ body[data-view="menu"] main{ padding-bottom: 0; }
 .choice:active{ background: linear-gradient(180deg, rgba(255,77,166,.06), rgba(0,0,0,.36)); transform: translateY(1px); }
 .choice h3{margin:0 0 8px 0; font-size:15px; font-weight:900}
 .choice p{margin:0; color:var(--muted); font-size:12px; line-height:1.25}
+.choiceIcon{
+  width:52px; height:52px;
+  object-fit:contain;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.32));
+  pointer-events:none;
+}
+.choiceText{min-width:0}
 .choice.big{
   grid-column:1 / -1;
   min-height:120px;
-  text-align:center;
-  align-items:center;
+  grid-template-columns:88px minmax(0,1fr);
+  text-align:left;
   border:1px solid transparent;
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%23ff1f8f' fill-opacity='0.015'%3E%3Ctext x='24' y='110' font-size='64'%3E%E2%99%A5%3C/text%3E%3Ctext x='140' y='190' font-size='54'%3E%E2%99%A5%3C/text%3E%3Ctext x='170' y='78' font-size='44'%3E%E2%99%A5%3C/text%3E%3C/g%3E%3C/svg%3E"),
@@ -158,6 +166,7 @@ body[data-view="menu"] main{ padding-bottom: 0; }
 }
 .choice.big h3{ font-size:20px; margin:0 0 8px 0; }
 .choice.big p{ margin:0; }
+.choice.big .choiceIcon{ width:86px; height:86px; }
 
 @keyframes mixHearts {
   from { background-position: 0 0, 0 0; }
@@ -210,8 +219,15 @@ body[data-view="menu"] main{ padding-bottom: 0; }
   touch-action:none;
   user-select:none;-webkit-user-select:none;
   overflow:hidden;
-  transform: translate(0,0) rotate(0deg);
+  transform: translate3d(0,0,0) rotate(0deg);
   transition: transform 160ms ease, opacity 160ms ease;
+  will-change: transform, opacity;
+  contain: layout paint style;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+.swipeCard.dragging{
+  cursor:grabbing;
 }
 .inner{
   height:100%;
@@ -235,7 +251,15 @@ body[data-deck="MIX"] .inner{
   font-size:14px; font-weight:800; color:var(--muted);
   border-top:1px solid rgba(255,77,166,.22);
   padding-top:14px; text-align:left;
+  display:flex; align-items:center; gap:9px;
   user-select:none;-webkit-user-select:none;
+}
+.cardTypeIcon{
+  width:26px; height:26px;
+  object-fit:contain;
+  flex:0 0 auto;
+  opacity:.95;
+  filter: drop-shadow(0 5px 10px rgba(0,0,0,.28));
 }
 .starBtn{
   position:absolute; right:14px; bottom:70px;

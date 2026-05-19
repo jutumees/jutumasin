@@ -98,13 +98,20 @@ header{
 }
 .brandLogo{
   display:block;
-  width:min(188px, 58vw);
+  width:188px;
+  max-width:58vw;
   height:auto;
+  max-height:54px;
   filter: drop-shadow(0 10px 34px rgba(255,77,166,.18));
   transition: width 140ms ease, transform 140ms ease, filter 140ms ease;
   user-select:none;-webkit-user-select:none;
 }
-body[data-view="menu"] .brandLogo{ width:min(322px, 82vw); transform: translateY(1px); }
+body[data-view="menu"] .brandLogo{
+  width:322px;
+  max-width:82vw;
+  max-height:91px;
+  transform: translateY(1px);
+}
 
 body[data-view="menu"] .brandBtn:hover .brandLogo{
   filter: drop-shadow(0 0 18px rgba(255,77,166,.45));

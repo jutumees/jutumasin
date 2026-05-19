@@ -214,7 +214,7 @@ function deckIconForCard(card){
 function makeCard(card, isBehind, mode){
   const wrap = document.createElement("div");
   wrap.className = "swipeCard";
-  wrap.style.transform = isBehind ? "scale(0.96) translateY(10px)" : "translate(0,0)";
+  wrap.style.transform = isBehind ? "translate3d(0, 10px, 0) scale(0.96)" : "translate3d(0,0,0)";
   wrap.style.opacity = isBehind ? "0.93" : "1";
 
   const inner = document.createElement("div");
@@ -318,16 +318,29 @@ function attachSwipeGame(cardEl){
 
 function nextCard(cardEl){
   if(State.index >= State.cards.length - 1) { cardEl.style.transform="translate3d(0,0,0) rotate(0deg)"; return; }
+  promoteNextCard(cardEl);
   animateOut(cardEl, 520, -40, 18);
   pushHistory("EDASI");
-  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 190);
+  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 210);
 }
 
 function markBestAndNext(cardEl){
   if(State.index >= State.cards.length) return;
+  promoteNextCard(cardEl);
   animateOut(cardEl, 0, -620, 0);
   pushHistory("PARIM", true);
-  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 190);
+  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 210);
+}
+
+function promoteNextCard(cardEl){
+  const nextEl = cardEl.previousElementSibling;
+  if(!nextEl || !nextEl.classList.contains("swipeCard")) return;
+
+  nextEl.style.transition = "transform 210ms cubic-bezier(.2,.8,.2,1), opacity 210ms ease";
+  requestAnimationFrame(()=>{
+    nextEl.style.transform = "translate3d(0,0,0) scale(1)";
+    nextEl.style.opacity = "1";
+  });
 }
 
 function prevCard(){

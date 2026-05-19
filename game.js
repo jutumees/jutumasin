@@ -322,7 +322,7 @@ function nextCard(cardEl){
   promoteNextCard(cardEl);
   animateOut(cardEl, 520, -40, 18);
   pushHistory("EDASI");
-  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 210);
+  setTimeout(()=>{ advanceStackAfterSwipe(cardEl); }, 210);
 }
 
 function markBestAndNext(cardEl){
@@ -330,7 +330,7 @@ function markBestAndNext(cardEl){
   promoteNextCard(cardEl);
   animateOut(cardEl, 0, -620, 0);
   pushHistory("PARIM", true);
-  setTimeout(()=>{ State.index++; updateProgress(); renderStack(); buildMenu(); }, 210);
+  setTimeout(()=>{ advanceStackAfterSwipe(cardEl); }, 210);
 }
 
 function promoteNextCard(cardEl){
@@ -342,6 +342,30 @@ function promoteNextCard(cardEl){
     nextEl.style.transform = "translate3d(0,0,0) scale(1)";
     nextEl.style.opacity = "1";
   });
+}
+
+function advanceStackAfterSwipe(cardEl){
+  const promotedEl = cardEl.previousElementSibling;
+  State.index++;
+  updateProgress();
+
+  if(!promotedEl || State.index >= State.cards.length){
+    renderStack();
+    buildMenu();
+    return;
+  }
+
+  cardEl.remove();
+  promotedEl.style.transition = "transform 160ms ease, opacity 160ms ease";
+  promotedEl.style.transform = "translate3d(0,0,0) rotate(0deg) scale(1)";
+  promotedEl.style.opacity = "1";
+  attachSwipeGame(promotedEl);
+
+  const behindCard = State.cards[State.index + 1];
+  if(behindCard) el.deck.insertBefore(makeCard(behindCard, true, "game"), promotedEl);
+
+  updateButtons();
+  buildMenu();
 }
 
 function prevCard(){

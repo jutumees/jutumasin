@@ -214,6 +214,7 @@ function deckIconForCard(card){
 function makeCard(card, isBehind, mode){
   const wrap = document.createElement("div");
   wrap.className = "swipeCard";
+  if(card.__emptyView) wrap.dataset.emptyView = "true";
   wrap.style.transform = isBehind ? "translate3d(0, 10px, 0) scale(0.96)" : "translate3d(0,0,0)";
   wrap.style.opacity = isBehind ? "0.93" : "1";
 
@@ -432,8 +433,10 @@ function attachSwipeView(cardEl){
     dragging=false; finishDrag();
     cardEl.style.transition="transform 180ms ease, opacity 180ms ease";
     const t=110;
-    if(dx<-t) swipeViewStep(cardEl, -1);
-    else if(dx>t) swipeViewStep(cardEl, +1);
+    if(dx<-t || dx>t){
+      if(cardEl.dataset.emptyView === "true") closeEmptyView(cardEl, dx < 0 ? -1 : 1);
+      else swipeViewStep(cardEl, dx < 0 ? -1 : 1);
+    }
     else cardEl.style.transform = "translate3d(0,0,0) rotate(0deg)";
   });
   cardEl.addEventListener("pointercancel",()=>{
@@ -442,6 +445,15 @@ function attachSwipeView(cardEl){
     cardEl.style.transition="transform 180ms ease, opacity 180ms ease";
     cardEl.style.transform = "translate3d(0,0,0) rotate(0deg)";
   });
+}
+
+function closeEmptyView(cardEl, dir){
+  cardEl.style.transform = `translate3d(${dir > 0 ? 520 : -520}px, 0, 0) rotate(${dir > 0 ? 12 : -12}deg)`;
+  cardEl.style.opacity = "0";
+  setTimeout(()=>{
+    showScreen("menu");
+    buildMenu();
+  }, 190);
 }
 
 function swipeViewStep(cardEl, dir){
@@ -478,7 +490,10 @@ function renderViewCard(){
   const item = list[State.viewPos];
 
   if(!item){
-    const empty = makeCard({title:"Pole midagi", desc:"Alusta mängu ja tee swiped.", foot:"• " + dk}, false, "view");
+    const emptyText = mode === "best"
+      ? "Alusta mängu ja swipei üles, et parimaid lisada."
+      : "Alusta mängu ja tee swipeid.";
+    const empty = makeCard({title:"Pole midagi", desc:emptyText, foot:"• " + dk, __emptyView:true}, false, "view");
     host.appendChild(empty);
     updateButtons();
     return;

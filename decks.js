@@ -46,7 +46,7 @@ const DECKS = {
     {title:"Küsimus",desc:"Kui sa saaksid oma seksielus midagi rohkemat, mis see oleks?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Jaga midagi mis sind erutab, mida sa pole minuga veel jaganud?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Kui tihti sa soovid intiimne olla?",foot:"• kohtingu küsimused"},
-    {title:"Küsimus",desc:"Kudas sa kirjeldaksid mind teistele inimestele?",foot:"• kohtingu küsimused"},
+    {title:"Küsimus",desc:"Kuidas sa kirjeldaksid mind teistele inimestele?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Mis kehaosa sind enda juures kõige rohkem häirib?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Kui sul oleks kiiresti raha vaja kuidas sa saaksid?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Mida tahaksid kindlasti elus kogeda?",foot:"• kohtingu küsimused"},

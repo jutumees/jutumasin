@@ -63,7 +63,7 @@ function buildMenu(){
   const hTotal = totalCount(State.histories);
   const bTotal = totalCount(State.bests);
   const items = [
-    { title:"Main MIX", sub:"kõik kaardid segamini • nii nagu mäng mõeldud on",action:()=>startMixedGame(), big:true },
+    { title:"Alusta SIIT", sub:"kõik kaardid segamini • Nii nagu mäng mõeldud on",action:()=>startMixedGame(), big:true },
 
     { title:"Dating",  sub:"• kohtinguks", action:()=>startGame("Dating") },
     { title:"Spicy",   sub:"• vallatumatele", action:()=>startGame("Spicy") },

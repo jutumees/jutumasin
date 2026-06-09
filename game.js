@@ -72,7 +72,7 @@ function buildMenu(){
     { title:"Parimad", sub:`• Sinu likeitud (${bTotal})`, action:()=>openDeckPicker("best") }
   ];
   const icons = {
-    "Main MIX": "assets/mix.png",
+    "Alusta SIIT": "assets/mix.png",
     "Dating": "assets/dating.png",
     "Spicy": "assets/spicy.png",
     "Couples": "assets/couples.png",

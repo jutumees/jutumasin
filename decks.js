@@ -1,6 +1,8 @@
 const DECKS = {
   "Dating": [
-    {title:"Küsimus",desc:"Mis on su lemmik kohtingu mälestus?",foot:"• kohtingu küsimused"},
+    {title:"Küsimus",desc:"Mis on su lemmik kohtingu mälestus?",foot:"• kohtingu küsimused"},   
+    {title:"Küsimus",desc:"Kuna sa viimati kõhus liblikaid tundsid?",foot:"• kohtingu küsimused"},
+    {title:"Küsimus",desc:"Mis on sinu peidetud külg mida sa tahaks, et su parnter märkab?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Millist nõu annaksid oma 18-aastasele minale?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Mis tegevus teeb sind suhtes kõige õnnelikumaks?",foot:"• kohtingu küsimused"},
     {title:"Küsimus",desc:"Kas eelistad kinke? Kallistusi? Komplimente?",foot:"• kohtingu küsimused"},

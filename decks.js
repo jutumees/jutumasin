@@ -85,7 +85,7 @@ const DECKS = {
     {title:"Küsimus",desc:"Kas sulle meeldib sosistamine?",foot:"• spicy"},
     {title:"Küsimus",desc:"Mis on su lemmik poos voodis?",foot:"• spicy"},
     {title:"Küsimus",desc:"Kas eelistad omavahel tegutseda hämaras või valges?",foot:"• spicy"},
-    {title:"Küsimus",desc:"Mis riietus on sinu meelest on eriti atraktiivne?",foot:"• spicy"},
+    {title:"Küsimus",desc:"Mis riietus on sinu meelest eriti atraktiivne?",foot:"• spicy"},
     {title:"Tegevus",desc:"See kes ette loeb saab käe panna teise reiele.",foot:"• spicy"},
     {title:"Küsimus",desc:"Mis on asi, mida sa kunagi voodis ei teeks, aga mis tundub erutav?",foot:"• spicy"},
     {title:"Küsimus",desc:"Kas sulle meeldib kiuslik flirt?",foot:"• spicy"},

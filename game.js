@@ -73,14 +73,13 @@ function buildMenu(){
   const hTotal = totalCount(State.histories);
   const bTotal = totalCount(State.bests);
   const items = [
-    { title:"Main MIX", sub:"kõik kaardid segamini • nii nagu mäng mõeldud on",action:()=>startMixedGame(), big:true },
-
-    { title:"Dating",  sub:"• kohtinguks", action:()=>startGame("Dating") },
-    { title:"Spicy",   sub:"• vallatumatele", action:()=>startGame("Spicy") },
-    { title:"Couples", sub:"• paaridele", action:()=>startGame("Couples") },
-    { title:"Party",   sub:"• seltskonnale", action:()=>startGame("Party") },
-    { title:"Ajalugu", sub:`• mis sa swipinud oled (${hTotal})`, action:()=>openDeckPicker("history") },
-    { title:"Parimad", sub:`• sinu likeitud (${bTotal})`, action:()=>openDeckPicker("best") }
+    { title:"Alusta SIIT", sub:"Kõik kaardid segamini • Nii nagu mäng mõeldud on",action:()=>startMixedGame(), big:true },
+    { title:"Dating",  sub:"• Kohtinguks", action:()=>startGame("Dating") },
+    { title:"Spicy",   sub:"• Vallatumatele", action:()=>startGame("Spicy") },
+    { title:"Couples", sub:"• Paaridele", action:()=>startGame("Couples") },
+    { title:"Party",   sub:"• Seltskonnale", action:()=>startGame("Party") },
+    { title:"Ajalugu", sub:`• Mis sa swipinud oled (${hTotal})`, action:()=>openDeckPicker("history") },
+    { title:"Parimad", sub:`• Sinu likeitud (${bTotal})`, action:()=>openDeckPicker("best") }
   ];
   if(State.cards.length && State.index < State.cards.length){
     items.unshift({title:'Jätka mängu', sub:`${State.deckKey} • kaart ${State.index + 1}`, action:()=>{
@@ -89,7 +88,7 @@ function buildMenu(){
     }});
   }
   const icons = {
-    "Main MIX": "assets/mix.png",
+    "Alusta SIIT": "assets/mix.png",
     "Dating": "assets/dating.png",
     "Spicy": "assets/spicy.png",
     "Couples": "assets/couples.png",

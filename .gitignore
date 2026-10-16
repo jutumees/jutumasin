@@ -1,0 +1,9 @@
+android/.gradle/
+android/local.properties
+android/**/build/
+android/ads.properties
+android/signing.properties
+*.jks
+*.keystore
+node_modules/
+test-results/

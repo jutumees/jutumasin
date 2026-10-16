@@ -1,0 +1,73 @@
+plugins { id 'com.android.application' }
+
+def signingFile = rootProject.file('signing.properties')
+def signing = new Properties()
+if (signingFile.exists()) signingFile.withInputStream { signing.load(it) }
+
+// The website and Android package share the same explicit release identity.
+def versionSource = rootProject.file('../version.js').getText('UTF-8').trim()
+def versionMatch = versionSource =~ /(?s)^window\.APP_VERSION\s*=\s*(\{.*\});$/
+if (!versionMatch.matches()) throw new GradleException('version.js must assign a JSON object to window.APP_VERSION')
+def releaseVersion = new groovy.json.JsonSlurper().parseText(versionMatch.group(1))
+try {
+    java.time.LocalDate.parse(releaseVersion.date, java.time.format.DateTimeFormatter.ofPattern('ddMMuuuu').withResolverStyle(java.time.format.ResolverStyle.STRICT))
+} catch (Exception error) { throw new GradleException('Version date must be a valid DDMMYYYY date', error) }
+if (!(releaseVersion.build instanceof Integer) || releaseVersion.build < 1 || !(releaseVersion.code instanceof Integer) || releaseVersion.code < 1)
+    throw new GradleException('Version build and code must be positive integers')
+
+android {
+    namespace 'com.jutumasin.app'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.jutumasin.app'
+        minSdk 24
+        targetSdk 36
+        versionCode releaseVersion.code
+        versionName "v${releaseVersion.date} build ${releaseVersion.build}"
+        manifestPlaceholders.admobAppId = 'ca-app-pub-4965975361805360~9539664771'
+        buildConfigField 'String', 'NATIVE_AD_UNIT_ID', '"ca-app-pub-4965975361805360/1102026695"'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        if (signingFile.exists()) {
+            production {
+                storeFile rootProject.file(signing.storeFile)
+                storePassword signing.storePassword
+                keyAlias signing.keyAlias
+                keyPassword signing.keyPassword
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildTypes {
+        release {
+            if (signingFile.exists()) signingConfig signingConfigs.production
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets.main.assets.srcDir layout.buildDirectory.dir('generated/gameAssets')
+}
+
+tasks.register('syncGameAssets', Sync) {
+    from('../..') {
+        include 'index.html', 'style.css', 'game.js', 'decks.js', 'ad-cadence.js', 'version.js', 'assets/**'
+    }
+    into layout.buildDirectory.dir('generated/gameAssets')
+}
+tasks.named('preBuild').configure { dependsOn 'syncGameAssets' }
+
+dependencies {
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+    implementation 'androidx.activity:activity:1.10.1'
+    implementation 'androidx.webkit:webkit:1.14.0'
+    implementation 'com.google.android.gms:play-services-ads:25.5.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+}

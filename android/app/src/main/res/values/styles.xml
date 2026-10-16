@@ -1,0 +1,19 @@
+<resources>
+    <style name="AppStartingTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="postSplashScreenTheme">@style/AppTheme</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/brand_background</item>
+        <item name="android:navigationBarColor">@color/brand_background</item>
+    </style>
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#ff4da6</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">#120014</item>
+        <item name="android:statusBarColor">#120014</item>
+        <item name="android:navigationBarColor">#120014</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+</resources>

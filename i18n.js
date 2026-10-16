@@ -9,7 +9,7 @@ window.I18n = (() => {
   } catch (_) { /* The game remains usable when browser storage is disabled. */ }
 
   const cards = {};
-  const legacyCards = new Map();
+  const legacyCards = new Map(Object.entries(window.JUTUMASIN_LEGACY_CARDS || {}));
   for (const [code, locale] of Object.entries(locales)) {
     cards[code] = new Map();
     for (const [deck, entries] of Object.entries(locale.decks)) {

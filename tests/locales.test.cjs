@@ -28,3 +28,16 @@ test('language catalogs cover identical UI keys, placeholders and stable card ID
  }
  assert.equal(seen.size,170);
 });
+
+test('original wording in pre-ID saves resolves to current cards in both languages',()=>{
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../locales/legacy.js'),'utf8'),context);
+ context.localStorage={getItem:()=>null,setItem:()=>{}};
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../i18n.js'),'utf8'),context);
+ for(const [key,id] of Object.entries(context.window.JUTUMASIN_LEGACY_CARDS)){
+  const [__deck,title,...words]=key.split('|');
+  const saved={__deck,title,desc:words.join('|')};
+  context.window.I18n.migrate(saved);
+  assert.equal(saved.id,id,key);
+  assert.equal(context.window.I18n.cardText(saved).desc,et.decks[__deck].find(c=>c.id===id).desc);
+ }
+});

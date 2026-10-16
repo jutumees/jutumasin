@@ -1,2 +1,2 @@
-Kuule tead oli igav tegin lehe ja siin ma olen.
+Kuule tead oli igav tegin lehe siis tegin appi ja siin ma olen.
 https://jutumasin.com/

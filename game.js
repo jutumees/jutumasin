@@ -1,5 +1,12 @@
 const DECKS2 = window.DECKS;
 const TINTS2 = window.TINTS;
+const versionLabel = `v${window.APP_VERSION.date} build ${window.APP_VERSION.build}`;
+document.querySelectorAll('[data-app-version]').forEach(node => { node.textContent = versionLabel; });
+let cadence = new AdCadence();
+let transitionTimer = null;
+let adRequest = 0;
+let adActive = false;
+const SAVE_KEY = 'jutumasin.v2';
 
 const State = {
   deckKey: null,
@@ -42,6 +49,8 @@ function setDeckTheme(key){
 }
 
 function showScreen(name){
+  cancelTransition();
+  dismissAd();
   el.menu.classList.toggle("active", name === "menu");
   el.about.classList.toggle("active", name === "about");
   el.game.classList.toggle("active", name === "game");
@@ -53,6 +62,7 @@ function showScreen(name){
   if(name === "menu" || name === "about") setDeckTheme("");
 
   updateButtons();
+  saveGame();
 }
 
 function totalCount(map){
@@ -72,6 +82,12 @@ function buildMenu(){
     { title:"Ajalugu", sub:`• mis sa swipinud oled (${hTotal})`, action:()=>openDeckPicker("history") },
     { title:"Parimad", sub:`• sinu likeitud (${bTotal})`, action:()=>openDeckPicker("best") }
   ];
+  if(State.cards.length && State.index < State.cards.length){
+    items.unshift({title:'Jätka mängu', sub:`${State.deckKey} • kaart ${State.index + 1}`, action:()=>{
+      setDeckTheme(State.deckKey); el.deckName.textContent = `Tüüp: ${State.deckKey}`;
+      showScreen('game'); renderStack(); updateProgress();
+    }});
+  }
   const icons = {
     "Main MIX": "assets/mix.png",
     "Dating": "assets/dating.png",
@@ -87,7 +103,7 @@ function buildMenu(){
     const c=document.createElement("div");
     c.className="choice" + (it.big ? " big" : "");
     c.innerHTML = `
-      <img class="choiceIcon" src="${it.icon}" alt="" aria-hidden="true">
+      <img class="choiceIcon" src="${it.icon || icons['Main MIX']}" alt="" aria-hidden="true">
       <div class="choiceText"><h3>${it.title}</h3><p>${it.sub}</p></div>
     `;
     c.addEventListener("click", it.action);
@@ -107,6 +123,13 @@ function openDeckPicker(mode){
 }
 
 function updateButtons(){
+  if(transitionTimer !== null || adActive){
+    el.btnBack.disabled = true;
+    el.btnNext.disabled = !adActive;
+    el.btnNext.textContent = adActive ? 'Jätka →' : 'Edasi ➡️';
+    return;
+  }
+  el.btnNext.textContent = 'Edasi ➡️';
   if(State.viewMode === "history"){
     const list = State.histories[State.viewDeckKey] || [];
     el.btnBack.disabled = !(list.length && State.viewPos > 0);
@@ -117,7 +140,7 @@ function updateButtons(){
     el.btnNext.disabled = !(list.length && State.viewPos < list.length - 1);
   } else if(State.viewMode === "game"){
     el.btnBack.disabled = (State.index <= 0);
-    el.btnNext.disabled = (State.index >= State.cards.length - 1);
+    el.btnNext.disabled = (State.index >= State.cards.length);
   } else {
     el.btnBack.disabled = false;
     el.btnNext.disabled = false;
@@ -125,6 +148,7 @@ function updateButtons(){
 }
 
 function startGame(deckKey){
+  cadence.newDeck();
   setDeckTheme(deckKey);
 
   State.deckKey = deckKey;
@@ -140,13 +164,15 @@ function startGame(deckKey){
 }
 
 function startMixedGame(){
+  cadence.newDeck();
   setDeckTheme("MIX");
 
   State.deckKey = "MIX";
   const mixed = [
     ...DECKS2["Dating"].map(c => ({...c, __deck:"Dating"})),
     ...DECKS2["Spicy"].map(c => ({...c, __deck:"Spicy"})),
-    ...DECKS2["Couples"].map(c => ({...c, __deck:"Couples"}))
+    ...DECKS2["Couples"].map(c => ({...c, __deck:"Couples"})),
+    ...DECKS2["Party"].map(c => ({...c, __deck:"Party"}))
   ];
   State.cards = shuffle([...mixed]);
   State.index = 0;
@@ -279,6 +305,7 @@ function attachSwipeGame(cardEl){
   }
 
   cardEl.addEventListener("pointerdown", (e)=>{
+    if(transitionTimer !== null || adActive) return;
     if(e.target && e.target.closest && e.target.closest(".starBtn")) return;
     dragging=true;
     cardEl.setPointerCapture(e.pointerId);
@@ -318,19 +345,26 @@ function attachSwipeGame(cardEl){
 }
 
 function nextCard(cardEl){
-  if(State.index >= State.cards.length - 1) { cardEl.style.transform="translate3d(0,0,0) rotate(0deg)"; return; }
-  promoteNextCard(cardEl);
-  animateOut(cardEl, 520, -40, 18);
-  pushHistory("EDASI");
-  setTimeout(()=>{ advanceStackAfterSwipe(cardEl); }, 210);
+  completeCard(cardEl, false);
 }
 
 function markBestAndNext(cardEl){
-  if(State.index >= State.cards.length) return;
+  completeCard(cardEl, true);
+}
+
+function completeCard(cardEl, best){
+  if(transitionTimer !== null || adActive || State.viewMode !== 'game' || State.index >= State.cards.length) return;
   promoteNextCard(cardEl);
-  animateOut(cardEl, 0, -620, 0);
-  pushHistory("PARIM", true);
-  setTimeout(()=>{ advanceStackAfterSwipe(cardEl); }, 210);
+  animateOut(cardEl, best ? 0 : 520, best ? -620 : -40, best ? 0 : 18);
+  transitionTimer = setTimeout(()=>{
+    transitionTimer = null;
+    pushHistory(best ? 'PARIM' : 'EDASI', best);
+    const due = cadence.complete(State.index);
+    State.index++;
+    renderStack(); updateProgress(); buildMenu(); saveGame();
+    if(due && State.viewMode === 'game') showAdCard();
+  }, 210);
+  updateButtons();
 }
 
 function promoteNextCard(cardEl){
@@ -344,37 +378,15 @@ function promoteNextCard(cardEl){
   });
 }
 
-function advanceStackAfterSwipe(cardEl){
-  const promotedEl = cardEl.previousElementSibling;
-  State.index++;
-  updateProgress();
-
-  if(!promotedEl || State.index >= State.cards.length){
-    renderStack();
-    buildMenu();
-    return;
-  }
-
-  cardEl.remove();
-  promotedEl.style.transition = "transform 160ms ease, opacity 160ms ease";
-  promotedEl.style.transform = "translate3d(0,0,0) rotate(0deg) scale(1)";
-  promotedEl.style.opacity = "1";
-  attachSwipeGame(promotedEl);
-
-  const behindCard = State.cards[State.index + 1];
-  if(behindCard) el.deck.insertBefore(makeCard(behindCard, true, "game"), promotedEl);
-
-  updateButtons();
-  buildMenu();
-}
-
 function prevCard(){
+  if(transitionTimer !== null || adActive) return;
   if(State.index <= 0){ renderStack(); return; }
   undoHistoryForIndex(State.index - 1);
   State.index--;
   updateProgress();
   renderStack();
   buildMenu();
+  saveGame();
 }
 
 function animateOut(cardEl, tx, ty, rot){
@@ -398,7 +410,7 @@ function pushHistory(otsus, maybeBest){
     if(!State.bests[dk]) State.bests[dk] = [];
     const key = cardKey(card);
     const exists = State.bests[dk].some(x => cardKey(x.card) === key);
-    if(!exists) State.bests[dk].push({ card });
+    if(!exists) { State.bests[dk].push({ card }); entry.addedBest = true; }
   }
 }
 
@@ -410,7 +422,7 @@ function undoHistoryForIndex(idx){
 
   h.pop();
 
-  if(last.otsus === "PARIM"){
+  if(last.addedBest){
     const key = cardKey(last.card);
     State.bests[dk] = (State.bests[dk] || []).filter(x => cardKey(x.card) !== key);
   }
@@ -472,15 +484,18 @@ function attachSwipeView(cardEl){
 }
 
 function closeEmptyView(cardEl, dir){
+  if(transitionTimer !== null) return;
   cardEl.style.transform = `translate3d(${dir > 0 ? 520 : -520}px, 0, 0) rotate(${dir > 0 ? 12 : -12}deg)`;
   cardEl.style.opacity = "0";
-  setTimeout(()=>{
+  transitionTimer = setTimeout(()=>{
+    transitionTimer = null;
     showScreen("menu");
     buildMenu();
   }, 190);
 }
 
 function swipeViewStep(cardEl, dir){
+  if(transitionTimer !== null) return;
   const dk = State.viewDeckKey;
   const mode = State.viewMode;
   const list = (mode==="history") ? (State.histories[dk] || []) : (State.bests[dk] || []);
@@ -495,7 +510,8 @@ function swipeViewStep(cardEl, dir){
   const tx = dir > 0 ? 520 : -520;
   cardEl.style.transform = `translate3d(${tx}px, 0, 0) rotate(${dir > 0 ? 12 : -12}deg)`;
   cardEl.style.opacity = "0";
-  setTimeout(()=>{
+  transitionTimer = setTimeout(()=>{
+    transitionTimer = null;
     State.viewPos = nextPos;
     renderViewCard();
     updateViewPos();
@@ -539,6 +555,7 @@ function updateViewPos(){
 }
 
 function viewStep(dir){
+  if(transitionTimer !== null) return;
   const dk = State.viewDeckKey;
   const mode = State.viewMode;
   const list = (mode==="history") ? (State.histories[dk] || []) : (State.bests[dk] || []);
@@ -554,6 +571,7 @@ el.aboutBtn.addEventListener("click", ()=>{ showScreen("about"); });
 el.btnMenu.addEventListener("click", ()=>{ showScreen("menu"); buildMenu(); });
 
 el.btnNext.addEventListener("click", ()=>{
+  if(adActive){ dismissAd(); updateButtons(); return; }
   if(State.viewMode==="game"){
     const top = el.deck.querySelector(".swipeCard:last-child");
     if(top) nextCard(top);
@@ -583,5 +601,72 @@ function shuffle(arr){
 }
 function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
 
+function cancelTransition(){
+  if(transitionTimer !== null) clearTimeout(transitionTimer);
+  transitionTimer = null;
+  document.body.classList.remove('isDraggingCard');
+}
+
+function saveGame(){
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({state: State, cadence})); }
+  catch(error){ console.warn('Game storage unavailable', error); }
+}
+
+function restoreGame(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+    const s = saved?.state;
+    const validCard = c => c && typeof c.title === 'string' && typeof c.desc === 'string';
+    const validMap = map => map && typeof map === 'object' && Object.entries(map).every(([key, entries]) =>
+      ['MIX', ...Object.keys(DECKS2)].includes(key) && Array.isArray(entries) && entries.every(e => validCard(e.card)));
+    if(!s || !Array.isArray(s.cards) || !s.cards.every(validCard) || !Number.isInteger(s.index)
+      || s.index < 0 || s.index > s.cards.length || !validMap(s.histories) || !validMap(s.bests)
+      || (s.deckKey !== null && !['MIX', ...Object.keys(DECKS2)].includes(s.deckKey))) return;
+    Object.assign(State, {deckKey:s.deckKey, cards:s.cards, index:s.index, histories:s.histories, bests:s.bests});
+    cadence = new AdCadence(saved.cadence);
+  } catch(error){ console.warn('Saved game could not be restored', error); }
+}
+
+function showAdCard(){
+  if(!window.AndroidApp) return;
+  adActive = true;
+  const request = ++adRequest;
+  el.deck.classList.add('adActive');
+  el.progress.textContent = 'Reklaam';
+  updateButtons();
+  const r = el.deck.getBoundingClientRect();
+  window.AndroidApp.showAd(request, r.x, r.y, r.width, r.height);
+}
+function dismissAd(){
+  if(!adActive) return;
+  adActive = false;
+  adRequest++;
+  window.AndroidApp?.dismissAd();
+  el.deck.classList.remove('adActive');
+  updateProgress();
+}
+window.onNativeAdFinished = request => {
+  if(request !== adRequest || !adActive) return;
+  adActive = false;
+  el.deck.classList.remove('adActive');
+  updateProgress(); updateButtons();
+};
+window.androidBack = () => {
+  if(adActive){ dismissAd(); updateButtons(); return true; }
+  if(State.viewMode === 'menu') return false;
+  showScreen('menu'); buildMenu(); return true;
+};
+window.setPrivacyOptionsRequired = required => {
+  document.getElementById('privacyOptions').hidden = !required;
+};
+document.getElementById('privacyOptions').addEventListener('click', ()=>window.AndroidApp?.privacyOptions());
+new ResizeObserver(()=>{
+  if(adActive){
+    const r = el.deck.getBoundingClientRect();
+    window.AndroidApp.resizeAd(r.x, r.y, r.width, r.height);
+  }
+}).observe(el.deck);
+document.addEventListener('visibilitychange', saveGame);
+restoreGame();
 buildMenu();
-showScreen("menu");
+showScreen('menu');

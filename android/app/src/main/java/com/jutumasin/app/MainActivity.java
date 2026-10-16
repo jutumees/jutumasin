@@ -3,6 +3,8 @@ package com.jutumasin.app;
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.Configuration;
+import java.util.Locale;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -59,6 +61,9 @@ public class MainActivity extends ComponentActivity {
     private int consentGeneration;
     private long loadedAt, nextLoadAt;
     private boolean pageReady;
+    private String language = "et";
+    private TextView adAttribution;
+    private Button adContinue;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -103,7 +108,7 @@ public class MainActivity extends ComponentActivity {
                 // Only the bundled document can access the bridge. External links leave the app.
                 if (request.isForMainFrame() && request.hasGesture() && "https".equals(uri.getScheme())) {
                     try { startActivity(new Intent(Intent.ACTION_VIEW, uri)); }
-                    catch (ActivityNotFoundException error) { toast("Veebibrauserit ei leitud."); }
+                    catch (ActivityNotFoundException error) { toast(nativeText(R.string.browser_missing)); }
                 }
                 return true;
             }
@@ -125,12 +130,17 @@ public class MainActivity extends ComponentActivity {
         consent = UserMessagingPlatform.getConsentInformation(this);
         consent.requestConsentInfoUpdate(this, new ConsentRequestParameters.Builder().build(), () -> {
             if (destroyed) return;
+            android.util.Log.i("JutumasinAds", "Consent info updated; canRequestAds=" + consent.canRequestAds());
             UserMessagingPlatform.loadAndShowConsentFormIfRequired(this, error -> {
                 if (destroyed) return;
+                if (error != null) android.util.Log.w("JutumasinAds", "Consent form: " + error.getErrorCode() + " " + error.getMessage());
                 updatePrivacyButton();
                 initializeAds();
             });
-        }, error -> { if (!destroyed) { updatePrivacyButton(); initializeAds(); } });
+        }, error -> {
+            android.util.Log.w("JutumasinAds", "Consent update: " + error.getErrorCode() + " " + error.getMessage());
+            if (!destroyed) { updatePrivacyButton(); initializeAds(); }
+        });
         initializeAds();
     }
 
@@ -142,6 +152,7 @@ public class MainActivity extends ComponentActivity {
         new Thread(() -> MobileAds.initialize(getApplicationContext(), status -> runOnUiThread(() -> {
             initializing = false;
             initialized = true;
+            android.util.Log.i("JutumasinAds", "Mobile Ads SDK initialized");
             preload();
         })), "ad-init").start();
     }
@@ -160,6 +171,7 @@ public class MainActivity extends ComponentActivity {
                 if (cachedAd != null) cachedAd.destroy();
                 cachedAd = ad;
                 loadedAt = SystemClock.elapsedRealtime();
+                android.util.Log.i("JutumasinAds", "Native ad loaded");
             })
             .withNativeAdOptions(new NativeAdOptions.Builder()
                 .setAdChoicesPlacement(NativeAdOptions.ADCHOICES_TOP_RIGHT).build())
@@ -167,12 +179,20 @@ public class MainActivity extends ComponentActivity {
                 @Override public void onAdFailedToLoad(LoadAdError error) {
                     loading = false;
                     nextLoadAt = SystemClock.elapsedRealtime() + 30000;
-                    android.util.Log.i("JutumasinAds", "Native ad unavailable: " + error.getCode());
+                    android.util.Log.i("JutumasinAds", "Native ad unavailable: " + error.getCode() + " " + error.getMessage());
                 }
             }).build().loadAd(new AdRequest.Builder().build());
     }
 
     public final class Bridge {
+        @JavascriptInterface public void setLanguage(String code) {
+            if (!"et".equals(code) && !"en".equals(code)) return;
+            runOnUiThread(() -> {
+                language = code;
+                if (adAttribution != null) adAttribution.setText(nativeText(R.string.ad_label));
+                if (adContinue != null) adContinue.setText(nativeText(R.string.continue_game));
+            });
+        }
         @JavascriptInterface public void showAd(int request, float x, float y, float width, float height) {
             runOnUiThread(() -> displayAd(request, x, y, width, height));
         }
@@ -211,7 +231,8 @@ public class MainActivity extends ComponentActivity {
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(dp(4), 0, dp(4), dp(8));
-        TextView attribution = label("Reklaam · Ad", 12);
+        TextView attribution = label(nativeText(R.string.ad_label), 12);
+        adAttribution = attribution;
         attribution.setPadding(0, 0, dp(36), dp(8));
         content.addView(attribution);
         LinearLayout heading = new LinearLayout(this);
@@ -254,12 +275,14 @@ public class MainActivity extends ComponentActivity {
         adCard.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
         // Continue is outside NativeAdView; it is never an ad click target.
         Button next = new Button(this);
-        next.setText(R.string.continue_game);
+        next.setText(nativeText(R.string.continue_game));
+        adContinue = next;
         next.setOnClickListener(view -> closeAd(true));
         adCard.addView(next, new LinearLayout.LayoutParams(-1, dp(52)));
         root.addView(adCard);
         positionAd(x, y, width, height);
         adView.setNativeAd(visibleAd);
+        android.util.Log.i("JutumasinAds", "Native ad displayed");
     }
 
     private void positionAd(float x, float y, float width, float height) {
@@ -272,6 +295,8 @@ public class MainActivity extends ComponentActivity {
     }
 
     private void closeAd(boolean notify) {
+        adContinue = null;
+        adAttribution = null;
         int request = activeRequest;
         activeRequest = -1;
         if (adCard != null) { root.removeView(adCard); adCard = null; }
@@ -297,9 +322,14 @@ public class MainActivity extends ComponentActivity {
         UserMessagingPlatform.showPrivacyOptionsForm(this, error -> {
             privacyOpen = false;
             if (destroyed) return;
-            if (error != null) toast("Privaatsusseadeid ei saanud avada. Proovi hiljem uuesti.");
+            if (error != null) toast(nativeText(R.string.privacy_error));
             updatePrivacyButton(); initializeAds();
         });
+    }
+    private String nativeText(int id) {
+        Configuration configuration = new Configuration(getResources().getConfiguration());
+        configuration.setLocale(Locale.forLanguageTag(language));
+        return createConfigurationContext(configuration).getString(id);
     }
     private TextView label(String text, int size) {
         TextView view = new TextView(this);

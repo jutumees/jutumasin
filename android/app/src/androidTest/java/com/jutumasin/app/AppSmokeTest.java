@@ -44,7 +44,7 @@ public class AppSmokeTest {
             }
             assertEquals("true", js(scenario, "typeof AndroidApp.showAd === 'function'"));
             js(scenario, "document.querySelectorAll('.bgHearts,.bgHearts2').forEach(e=>e.style.animation='none')");
-            assertEquals("\"menu\"", js(scenario, "State.viewMode"));
+            js(scenario, "showScreen('menu'); buildMenu()");
             assertEquals("true", js(scenario, "startGame('Dating'); State.cards.length > 0"));
             assertEquals("\"game\"", js(scenario, "State.viewMode"));
             js(scenario, "document.getElementById('btnNext').click()");

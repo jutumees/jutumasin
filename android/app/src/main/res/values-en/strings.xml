@@ -1,0 +1,6 @@
+<resources>
+    <string name="continue_game">Continue game →</string>
+    <string name="ad_label">Advertisement</string>
+    <string name="browser_missing">No web browser found.</string>
+    <string name="privacy_error">Unable to open privacy settings. Please try again later.</string>
+</resources>

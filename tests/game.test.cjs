@@ -48,14 +48,15 @@ const server = http.createServer((req,res) => {
     await page.evaluate(()=>{document.getElementById('btnNext').click();document.getElementById('btnMenu').click();});
     await page.waitForTimeout(250);
     assert.equal(await page.evaluate(()=>State.index),8,'menu cancels pending transition');
-    await page.getByRole('heading',{name:'Jätka mängu'}).click();
+    await page.reload();
+    assert.equal(await page.evaluate(()=>State.viewMode),'game','unfinished game opens automatically');
     await page.locator('.swipeCard:last-child .starBtn').dispatchEvent('pointerup');
     await page.waitForTimeout(250);
     assert.equal(await page.evaluate(()=>State.bests.Dating.length),1);
     await page.reload();
     assert.equal(await page.evaluate(()=>State.index),9);
     assert.equal(await page.evaluate(()=>State.bests.Dating.length),1);
-    await page.getByRole('heading',{name:'Jätka mängu'}).click();
+    assert.equal(await page.evaluate(()=>State.viewMode),'game','unfinished game resumes without a menu tile');
     await advance();
     assert.equal(await page.evaluate(()=>adCalls.length),1,'persisted cadence triggers next slot');
     await page.locator('#btnMenu').click();

@@ -1,7 +1,7 @@
 const DECKS2 = window.DECKS;
 const TINTS2 = window.TINTS;
-const versionLabel = `v${window.APP_VERSION.date} build ${window.APP_VERSION.build}`;
-document.querySelectorAll('[data-app-version]').forEach(node => { node.textContent = versionLabel; });
+const t = (key, values) => I18n.t(key, values);
+
 let cadence = new AdCadence();
 let transitionTimer = null;
 let adRequest = 0;
@@ -56,6 +56,7 @@ function showScreen(name){
   el.game.classList.toggle("active", name === "game");
   el.history.classList.toggle("active", name === "history");
   el.best.classList.toggle("active", name === "best");
+  if(name === "menu") el.menu.scrollTop = 0;
   State.viewMode = name;
   document.body.setAttribute("data-view", name);
 
@@ -73,36 +74,20 @@ function buildMenu(){
   const hTotal = totalCount(State.histories);
   const bTotal = totalCount(State.bests);
   const items = [
-    { title:"Alusta SIIT", sub:"Kõik kaardid segamini • Nii nagu mäng mõeldud on",action:()=>startMixedGame(), big:true },
-    { title:"Dating",  sub:"• Kohtinguks", action:()=>startGame("Dating") },
-    { title:"Spicy",   sub:"• Vallatumatele", action:()=>startGame("Spicy") },
-    { title:"Couples", sub:"• Paaridele", action:()=>startGame("Couples") },
-    { title:"Party",   sub:"• Seltskonnale", action:()=>startGame("Party") },
-    { title:"Ajalugu", sub:`• Mis sa swipinud oled (${hTotal})`, action:()=>openDeckPicker("history") },
-    { title:"Parimad", sub:`• Sinu likeitud (${bTotal})`, action:()=>openDeckPicker("best") }
+    { title:t('mixTitle'), sub:t('mixSubtitle'), icon:'assets/mix.png', action:()=>startMixedGame(), big:true },
+    ...['Dating', 'Spicy', 'Couples', 'Party'].map(key => ({
+      title:t(key.toLowerCase() + 'Title'), sub:t(key.toLowerCase() + 'Subtitle'),
+      icon:`assets/${key.toLowerCase()}.png`, action:()=>startGame(key)
+    })),
+    { title:t('historyTitle'), sub:t('historySubtitle', {count:hTotal}), icon:'assets/history.png', action:()=>openDeckPicker('history') },
+    { title:t('bestTitle'), sub:t('bestSubtitle', {count:bTotal}), icon:'assets/best.png', action:()=>openDeckPicker('best') }
   ];
-  if(State.cards.length && State.index < State.cards.length){
-    items.unshift({title:'Jätka mängu', sub:`${State.deckKey} • kaart ${State.index + 1}`, action:()=>{
-      setDeckTheme(State.deckKey); el.deckName.textContent = `Tüüp: ${State.deckKey}`;
-      showScreen('game'); renderStack(); updateProgress();
-    }});
-  }
-  const icons = {
-    "Alusta SIIT": "assets/mix.png",
-    "Dating": "assets/dating.png",
-    "Spicy": "assets/spicy.png",
-    "Couples": "assets/couples.png",
-    "Party": "assets/party.png",
-    "Ajalugu": "assets/history.png",
-    "Parimad": "assets/best.png"
-  };
   el.menuGrid.innerHTML = "";
   items.forEach(it=>{
-    it.icon = icons[it.title];
     const c=document.createElement("div");
     c.className="choice" + (it.big ? " big" : "");
     c.innerHTML = `
-      <img class="choiceIcon" src="${it.icon || icons['Main MIX']}" alt="" aria-hidden="true">
+      <img class="choiceIcon" src="${it.icon}" alt="" aria-hidden="true">
       <div class="choiceText"><h3>${it.title}</h3><p>${it.sub}</p></div>
     `;
     c.addEventListener("click", it.action);
@@ -125,10 +110,10 @@ function updateButtons(){
   if(transitionTimer !== null || adActive){
     el.btnBack.disabled = true;
     el.btnNext.disabled = !adActive;
-    el.btnNext.textContent = adActive ? 'Jätka →' : 'Edasi ➡️';
+    el.btnNext.textContent = adActive ? t('continue') : t('next');
     return;
   }
-  el.btnNext.textContent = 'Edasi ➡️';
+  el.btnNext.textContent = t('next');
   if(State.viewMode === "history"){
     const list = State.histories[State.viewDeckKey] || [];
     el.btnBack.disabled = !(list.length && State.viewPos > 0);
@@ -155,7 +140,7 @@ function startGame(deckKey){
   State.index = 0;
   if(!State.histories[deckKey]) State.histories[deckKey] = [];
   if(!State.bests[deckKey]) State.bests[deckKey] = [];
-  el.deckName.textContent = `Tüüp: ${deckKey}`;
+  el.deckName.textContent = t('deckLabel', {deck:deckKey});
   showScreen("game");
   renderStack();
   updateProgress();
@@ -177,7 +162,7 @@ function startMixedGame(){
   State.index = 0;
   if(!State.histories["MIX"]) State.histories["MIX"] = [];
   if(!State.bests["MIX"]) State.bests["MIX"] = [];
-  el.deckName.textContent = "Tüüp: MIX";
+  el.deckName.textContent = t('deckLabel', {deck:'MIX'});
   showScreen("game");
   renderStack();
   updateProgress();
@@ -191,19 +176,19 @@ function openList(mode, deckKey){
   setDeckTheme(deckKey === "MIX" ? "Dating" : deckKey);
 
   if(mode==="history"){
-    el.historyName.textContent = `Ajalugu: ${deckKey}`;
+    el.historyName.textContent = t('historyLabel', {deck:deckKey});
     showScreen("history");
     renderViewCard();
     updateViewPos();
   } else {
-    el.bestName.textContent = `Parimad: ${deckKey}`;
+    el.bestName.textContent = t('bestLabel', {deck:deckKey});
     showScreen("best");
     renderViewCard();
     updateViewPos();
   }
 }
 
-function updateProgress(){ el.progress.textContent = String(State.index + 1); }
+function updateProgress(){ el.progress.textContent = adActive ? t('ad') : String(State.index + 1); }
 
 function renderStack(){
   el.deck.innerHTML = "";
@@ -237,6 +222,7 @@ function deckIconForCard(card){
 }
 
 function makeCard(card, isBehind, mode){
+  const content = I18n.cardText(card);
   const wrap = document.createElement("div");
   wrap.className = "swipeCard";
   if(card.__emptyView) wrap.dataset.emptyView = "true";
@@ -249,19 +235,23 @@ function makeCard(card, isBehind, mode){
   const footIcon = deckIconForCard(card);
 
   inner.innerHTML = `
-    <div class="title">${card.title}</div>
-    <div class="desc">${card.desc}</div>
+    <div class="title"></div>
+    <div class="desc"></div>
     <div class="foot">
       ${footIcon ? `<img class="cardTypeIcon" src="${footIcon}" alt="" aria-hidden="true">` : ""}
-      <span>${card.foot || ""}</span>
+      <span></span>
     </div>
   `;
+  inner.querySelector('.title').textContent = content.title;
+  inner.querySelector('.desc').textContent = content.desc;
+  inner.querySelector('.foot span').textContent = content.foot || '';
   wrap.appendChild(inner);
 
   if(mode === "game"){
     const starBtn = document.createElement("button");
     starBtn.className = "starBtn";
     starBtn.type = "button";
+    starBtn.setAttribute("aria-label", t("favourite"));
     starBtn.innerHTML = "<span>⭐</span>";
     starBtn.addEventListener("pointerdown", (e)=>{ e.stopPropagation(); e.preventDefault(); });
     starBtn.addEventListener("pointerup", (e)=>{
@@ -394,7 +384,7 @@ function animateOut(cardEl, tx, ty, rot){
 }
 
 function cardKey(card){
-  return (card.title||"") + "||" + (card.desc||"");
+  return I18n.migrate(card).id || (card.title||"") + "||" + (card.desc||"");
 }
 
 function pushHistory(otsus, maybeBest){
@@ -530,9 +520,9 @@ function renderViewCard(){
 
   if(!item){
     const emptyText = mode === "best"
-      ? "Alusta mängu ja swipei üles, et parimaid lisada."
-      : "Alusta mängu ja tee swipeid.";
-    const empty = makeCard({title:"Pole midagi", desc:emptyText, foot:"• " + dk, __emptyView:true}, false, "view");
+      ? t('emptyBest')
+      : t('emptyHistory');
+    const empty = makeCard({title:t('emptyTitle'), desc:emptyText, foot:"• " + dk, __emptyView:true}, false, "view");
     host.appendChild(empty);
     updateButtons();
     return;
@@ -622,6 +612,10 @@ function restoreGame(){
       || s.index < 0 || s.index > s.cards.length || !validMap(s.histories) || !validMap(s.bests)
       || (s.deckKey !== null && !['MIX', ...Object.keys(DECKS2)].includes(s.deckKey))) return;
     Object.assign(State, {deckKey:s.deckKey, cards:s.cards, index:s.index, histories:s.histories, bests:s.bests});
+    State.cards.forEach(I18n.migrate);
+    for(const store of [State.histories, State.bests]) {
+      Object.values(store).flat().forEach(entry => I18n.migrate(entry.card));
+    }
     cadence = new AdCadence(saved.cadence);
   } catch(error){ console.warn('Saved game could not be restored', error); }
 }
@@ -631,7 +625,7 @@ function showAdCard(){
   adActive = true;
   const request = ++adRequest;
   el.deck.classList.add('adActive');
-  el.progress.textContent = 'Reklaam';
+  el.progress.textContent = t('ad');
   updateButtons();
   const r = el.deck.getBoundingClientRect();
   window.AndroidApp.showAd(request, r.x, r.y, r.width, r.height);
@@ -667,5 +661,31 @@ new ResizeObserver(()=>{
 }).observe(el.deck);
 document.addEventListener('visibilitychange', saveGame);
 restoreGame();
+I18n.apply();
+refreshLanguageLabels();
 buildMenu();
-showScreen('menu');
+if(State.cards.length && State.index < State.cards.length){
+  setDeckTheme(State.deckKey);
+  showScreen('game');
+  renderStack();
+  updateProgress();
+} else {
+  showScreen('menu');
+}
+
+// Re-render translated text without changing shuffled cards, position or ad cadence.
+function refreshLanguageLabels(){
+  el.deckName.textContent = t('deckLabel', {deck:State.deckKey || '—'});
+  el.historyName.textContent = t('historyLabel', {deck:State.viewDeckKey || '—'});
+  el.bestName.textContent = t('bestLabel', {deck:State.viewDeckKey || '—'});
+}
+document.getElementById('languageToggle').addEventListener('click', () => {
+  cancelTransition();
+  I18n.setLanguage(I18n.language === 'et' ? 'en' : 'et');
+  refreshLanguageLabels();
+  buildMenu();
+  if(State.viewMode === 'game') { renderStack(); updateProgress(); }
+  if(State.viewMode === 'history' || State.viewMode === 'best') { renderViewCard(); updateViewPos(); }
+  updateButtons();
+  saveGame();
+});

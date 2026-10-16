@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com https://www.gstatic.com https://www.googletagservices.com https://*.googleadservices.com https://*.adtrafficquality.google; connect-src https:; frame-src 'self' https:; media-src https:; object-src 'none'; base-uri 'none'" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23ff4da6%22/><text x=%2232%22 y=%2242%22 font-size=%2232%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22>JM</text></svg>">
   <title>Jutumasin</title>
   <link rel="stylesheet" href="style.css" />
@@ -15,18 +15,22 @@
 
   <div class="app">
     <header>
-      <button class="brandBtn" id="brandHome" type="button" aria-label="Avaleht">
+      <div class="headerTop">
+      <button class="brandBtn" id="brandHome" type="button" aria-label="Avaleht" data-i18n-label="home">
         <img class="brandLogo" src="assets/logo.png" width="322" height="91" alt="Jutumasin">
       </button>
-      <div class="tagline">Lihtne kaardimäng kahele või enamale. Swipige küsimuskaarte ja vastake kordamööda. Hea icebreaker ja sügavate vestluste algataja.</div>
+      <button class="languageBtn" id="languageToggle" type="button" lang="en" data-i18n="language" data-i18n-label="languageLabel">English</button>
+      </div>
+      <div class="tagline" data-i18n="tagline">Lihtne kaardimäng kahele või enamale. Swipige küsimuskaarte ja vastake kordamööda. Hea icebreaker ja sügavate vestluste algataja.</div>
     </header>
 
     <main>
       <section id="menuScreen" class="screen active">
         <div class="menuWrap">
           <div class="grid" id="menuGrid"></div>
+          <aside id="webAd" class="webAd" hidden><div class="webAdLabel" data-i18n="ad">Reklaam</div></aside>
           <div class="aboutRow">
-            <div class="aboutBtn" id="aboutBtn">About</div>
+            <button class="aboutBtn" id="aboutBtn" type="button" data-i18n="about">Mängust</button>
             <div class="version" data-app-version></div>
           </div>
         </div>
@@ -35,18 +39,18 @@
       <section id="aboutScreen" class="screen">
         <div class="aboutCard">
           <div>
-            Soovitatud 18+ vanusele.
-            Made by Renno!
+            <span data-i18n="age">Soovitatud 18+ vanusele.</span>
+            <span data-i18n="author">Teinud Renno!</span>
             <br><br>
             <a href="https://github.com/jutumasin/jutumasin" target="_blank" rel="noopener">https://github.com/jutumasin/jutumasin</a>
             <br><br>
-            Kui te selle mängu kaudu leiate oma elu armastuse siis olete mulle kohvi raha võlgu!
+            <span data-i18n="donationMessage">Kui te selle mängu kaudu leiate oma elu armastuse siis olete mulle kohvi raha võlgu!</span>
             <br><br>
-            <a href="https://paypal.me/rennoispoor" target="_blank" rel="noopener">donation link</a>
+            <a href="https://paypal.me/rennoispoor" target="_blank" rel="noopener" data-i18n="donationLink">Toeta kohvirahaga</a>
             <br><br>
-            <button class="ctrl" id="privacyOptions" hidden>Reklaamide privaatsusseaded</button>
-            <p>Mängu edenemine, ajalugu ja lemmikud salvestatakse sellesse seadmesse. Androidi rakenduses näidatakse reklaame.</p>
-            <p><a href="https://jutumasin.com/privacy.html">Chatmachine OÜ · Privaatsuspoliitika</a></p>
+            <button class="ctrl" id="webPrivacyOptions" data-i18n="webPrivacyOptions" hidden>Privaatsus- ja küpsiseseaded</button>
+            <button class="ctrl" id="privacyOptions" data-i18n="privacyOptions" hidden>Reklaamide privaatsusseaded</button>
+            <p><a href="https://jutumasin.com/privacy.html" data-i18n="privacyPolicy">Chatmachine OÜ · Privaatsuspoliitika</a></p>
             <p class="version" data-app-version></p>
           </div>
         </div>
@@ -78,15 +82,19 @@
     </main>
 
     <div class="controls" id="controls">
-      <button class="ctrl" id="btnBack">⬅️ Tagasi</button>
-      <button class="ctrl" id="btnMenu">☰ Menüü</button>
-      <button class="ctrl" id="btnNext">Edasi ➡️</button>
+      <button class="ctrl" id="btnBack" data-i18n="back">⬅️ Tagasi</button>
+      <button class="ctrl" id="btnMenu" data-i18n="menu">☰ Menüü</button>
+      <button class="ctrl" id="btnNext" data-i18n="next">Edasi ➡️</button>
     </div>
   </div>
 
   <script src="version.js"></script>
+  <script src="locales/et.js"></script>
+  <script src="locales/en.js"></script>
+  <script src="i18n.js"></script>
   <script src="decks.js"></script>
   <script src="ad-cadence.js"></script>
   <script src="game.js"></script>
+  <script src="web-ads.js"></script>
 </body>
 </html>

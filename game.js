@@ -6,6 +6,7 @@ let cadence = new AdCadence();
 let transitionTimer = null;
 let adRequest = 0;
 let adActive = false;
+let webBreakActive = false;
 const SAVE_KEY = 'jutumasin.v2';
 
 const State = {
@@ -49,6 +50,7 @@ function setDeckTheme(key){
 }
 
 function showScreen(name){
+  if(webBreakActive) return;
   cancelTransition();
   dismissAd();
   el.menu.classList.toggle("active", name === "menu");
@@ -107,7 +109,8 @@ function openDeckPicker(mode){
 }
 
 function updateButtons(){
-  if(transitionTimer !== null || adActive){
+  if(webBreakActive){ el.btnBack.disabled = true; el.btnNext.disabled = true; return; }
+  if(transitionTimer !== null || adActive || webBreakActive){
     el.btnBack.disabled = true;
     el.btnNext.disabled = !adActive;
     el.btnNext.textContent = adActive ? t('continue') : t('next');
@@ -294,7 +297,7 @@ function attachSwipeGame(cardEl){
   }
 
   cardEl.addEventListener("pointerdown", (e)=>{
-    if(transitionTimer !== null || adActive) return;
+    if(transitionTimer !== null || adActive || webBreakActive) return;
     if(e.target && e.target.closest && e.target.closest(".starBtn")) return;
     dragging=true;
     cardEl.setPointerCapture(e.pointerId);
@@ -342,7 +345,7 @@ function markBestAndNext(cardEl){
 }
 
 function completeCard(cardEl, best){
-  if(transitionTimer !== null || adActive || State.viewMode !== 'game' || State.index >= State.cards.length) return;
+  if(transitionTimer !== null || adActive || webBreakActive || State.viewMode !== 'game' || State.index >= State.cards.length) return;
   promoteNextCard(cardEl);
   animateOut(cardEl, best ? 0 : 520, best ? -620 : -40, best ? 0 : 18);
   transitionTimer = setTimeout(()=>{
@@ -369,7 +372,7 @@ function promoteNextCard(cardEl){
 }
 
 function prevCard(){
-  if(transitionTimer !== null || adActive) return;
+  if(transitionTimer !== null || adActive || webBreakActive) return;
   if(State.index <= 0){ renderStack(); return; }
   undoHistoryForIndex(State.index - 1);
   State.index--;
@@ -603,7 +606,7 @@ function syncPlayClock(){
   const now = performance.now();
   if(playClockRunning) cadence.addPlayTime(now - playClockAt);
   playClockAt = now;
-  playClockRunning = State.viewMode === 'game' && !adActive && !document.hidden;
+  playClockRunning = State.viewMode === 'game' && !adActive && !webBreakActive && !document.hidden;
 }
 function saveGame(){
   syncPlayClock();
@@ -631,7 +634,13 @@ function restoreGame(){
 }
 
 function showAdCard(){
-  if(!window.AndroidApp) return;
+  if(!window.AndroidApp) {
+    window.WebAds?.showBreak({
+      before(){ webBreakActive = true; syncPlayClock(); updateButtons(); },
+      after(){ webBreakActive = false; syncPlayClock(); updateProgress(); updateButtons(); }
+    });
+    return;
+  }
   adActive = true;
   syncPlayClock();
   const request = ++adRequest;

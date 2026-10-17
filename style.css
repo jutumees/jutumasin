@@ -419,8 +419,13 @@ button.ctrl{min-width:0;flex:1;padding:12px 8px}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 
-/* Ads are a separate menu block, never over cards or navigation controls. */
-.webAd{flex-shrink:0; width:100%; margin:24px 0; padding:12px 0; border-block:1px solid rgba(255,77,166,.18);}
-.webAd[hidden]{display:none;}
-.webAdLabel{font-size:11px; color:var(--muted); text-align:center; margin-bottom:10px;}
-.webAd .adsbygoogle{width:100%; min-height:100px;}
+/* Side rails never participate in the game/menu layout. Empty slots stay invisible. */
+.webAd{display:none;visibility:hidden;position:fixed;top:50%;transform:translateY(-50%);width:clamp(160px,calc((100vw - 520px)/2 - 48px),300px);height:min(624px,calc(100dvh - 48px));}
+.webAd[hidden]{display:none!important;}
+.webAd.isFilled{visibility:visible;}
+.webAdRight{left:calc(50% + 260px + 24px);}
+.webAdLabel{font-size:11px;line-height:14px;color:var(--muted);text-align:center;height:24px;}
+.webAd .adsbygoogle{display:block;width:100%;height:calc(100% - 24px);}
+@media (min-width:1000px) and (min-height:400px){
+  body:not([data-view="about"]) .webAd{display:block;}
+}

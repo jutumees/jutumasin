@@ -128,7 +128,7 @@ public class AppSmokeTest {
             assertEquals("Swipe cancels the SDK child gesture",1,cancels.get());
         } finally { InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.finish()); }
     }
-    @Test public void childSafetyEmailOpensComposeWithoutSending() throws Exception {
+    @Test public void childSafetyStandardsLinkAndEmailHandling() throws Exception {
         launch();
         android.content.IntentFilter filter = new android.content.IntentFilter(Intent.ACTION_SENDTO);
         filter.addDataScheme("mailto");
@@ -137,10 +137,10 @@ public class AppSmokeTest {
             new android.app.Instrumentation.ActivityResult(android.app.Activity.RESULT_CANCELED,null),true);
         try {
             for(int i=0;i<50;i++) {
-                if("true".equals(js("!!document.getElementById('childSafetyReport')"))) break;
+                if("true".equals(js("!!document.getElementById('childSafetyStandards')"))) break;
                 Thread.sleep(100);
             }
-            assertEquals("true",js("document.getElementById('childSafetyReport').href.startsWith('mailto:renno.east@hotmail.com')"));
+            assertEquals("true",js("document.getElementById('childSafetyStandards').href === 'https://jutumasin.com/privacy.html#child-safety'"));
             instrumentation.runOnMainSync(() -> {
                 WebView web=findWeb(activity.getWindow().getDecorView());
                 web.getWebViewClient().shouldOverrideUrlLoading(web,new android.webkit.WebResourceRequest(){

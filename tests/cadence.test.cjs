@@ -22,3 +22,16 @@ test('cadence survives app restart', () => {
   assert.equal(restored.complete(2), true);
   assert.equal(restored.interval, 4);
 });
+
+test('after five minutes ads continue every five to six new questions across restarts', () => {
+  const cadence = new AdCadence();
+  cadence.addPlayTime(300000);
+  const ads=[];
+  for(let i=0;i<22;i++) if(cadence.complete(i)) ads.push(i+1);
+  assert.deepEqual(ads,[5,11,16,22]);
+  const restored = new AdCadence(JSON.parse(JSON.stringify(cadence)));
+  assert.equal(restored.activeMs,300000);
+  restored.newDeck();
+  for(let i=0;i<4;i++) assert.equal(restored.complete(i),false);
+  assert.equal(restored.complete(4),true);
+});

@@ -215,7 +215,9 @@ public class MainActivity extends ComponentActivity {
         visibleAd = cachedAd;
         cachedAd = null;
         activeRequest = request;
-        adCard = new LinearLayout(this);
+        SwipeDismissLayout swipeCard = new SwipeDismissLayout(this);
+        swipeCard.setOnDismiss(() -> { if (adCard == swipeCard) closeAd(true); });
+        adCard = swipeCard;
         adCard.setOrientation(LinearLayout.VERTICAL);
         GradientDrawable background = new GradientDrawable();
         background.setColor(Color.rgb(32, 8, 28));

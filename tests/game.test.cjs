@@ -75,6 +75,25 @@ const server = http.createServer((req,res) => {
     await page.setViewportSize({width:780,height:393});
     assert.equal(await page.locator('#btnNext').isVisible(),true);
     await page.screenshot({path:path.join(root,'test-results','landscape.png')});
+    await page.clock.install();
+    await page.evaluate(()=>{showScreen('menu');cadence=new AdCadence();syncPlayClock();});
+    await page.clock.fastForward(600000);
+    await page.evaluate(()=>startGame('Dating'));
+    assert(await page.evaluate(()=>cadence.activeMs)<1000,'menu time does not count as play');
+    await page.clock.fastForward(301000);
+    await page.evaluate(()=>{showScreen('menu');saveGame();});
+    const played=await page.evaluate(()=>cadence.activeMs);
+    assert(played>=301000);
+    await page.clock.fastForward(600000);
+    await page.evaluate(()=>saveGame());
+    assert(Math.abs(await page.evaluate(()=>cadence.activeMs)-played)<1000,'menus pause the play clock');
+    await page.evaluate(()=>{showScreen('game');showAdCard();});
+    const beforeAd=await page.evaluate(()=>cadence.activeMs);
+    await page.clock.fastForward(600000);
+    await page.evaluate(()=>{dismissAd();saveGame();});
+    assert(Math.abs(await page.evaluate(()=>cadence.activeMs)-beforeAd)<1000,'ad time does not count as play');
+    await page.reload();
+    assert(Math.abs(await page.evaluate(()=>cadence.activeMs)-beforeAd)<1000,'active play time survives reopening');
     assert.deepEqual(errors,[]);
     console.log('PASS: cadence, ad dismiss/no-fill callback, stale callbacks, backtracking, rapid taps, menu cancellation, favourites, restart, MIX, last card, phone and landscape.');
   } finally {await browser.close();server.close();}

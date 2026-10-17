@@ -20,7 +20,7 @@ window.JUTUMASIN_LOCALES.et = {
     "continue": "Jätka →",
     "ad": "Reklaam",
     "favourite": "Lisa lemmikuks ja jätka",
-    "version": "v{date} järk {build}",
+    "version": "v{date} build {build}",
     "mixTitle": "Alusta SIIT",
     "mixSubtitle": "Kõik kaardid segamini • Nii nagu mäng mõeldud on",
     "datingTitle": "Dating",

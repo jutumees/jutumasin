@@ -348,6 +348,7 @@ function completeCard(cardEl, best){
   transitionTimer = setTimeout(()=>{
     transitionTimer = null;
     pushHistory(best ? 'PARIM' : 'EDASI', best);
+    syncPlayClock();
     const due = cadence.complete(State.index);
     State.index++;
     renderStack(); updateProgress(); buildMenu(); saveGame();
@@ -596,7 +597,16 @@ function cancelTransition(){
   document.body.classList.remove('isDraggingCard');
 }
 
+let playClockAt = performance.now();
+let playClockRunning = false;
+function syncPlayClock(){
+  const now = performance.now();
+  if(playClockRunning) cadence.addPlayTime(now - playClockAt);
+  playClockAt = now;
+  playClockRunning = State.viewMode === 'game' && !adActive && !document.hidden;
+}
 function saveGame(){
+  syncPlayClock();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify({state: State, cadence})); }
   catch(error){ console.warn('Game storage unavailable', error); }
 }
@@ -623,6 +633,7 @@ function restoreGame(){
 function showAdCard(){
   if(!window.AndroidApp) return;
   adActive = true;
+  syncPlayClock();
   const request = ++adRequest;
   el.deck.classList.add('adActive');
   el.progress.textContent = t('ad');
@@ -633,6 +644,7 @@ function showAdCard(){
 function dismissAd(){
   if(!adActive) return;
   adActive = false;
+  syncPlayClock();
   adRequest++;
   window.AndroidApp?.dismissAd();
   el.deck.classList.remove('adActive');
@@ -641,6 +653,7 @@ function dismissAd(){
 window.onNativeAdFinished = request => {
   if(request !== adRequest || !adActive) return;
   adActive = false;
+  syncPlayClock();
   el.deck.classList.remove('adActive');
   updateProgress(); updateButtons();
 };

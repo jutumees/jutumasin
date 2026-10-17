@@ -55,13 +55,15 @@ public class AppSmokeTest {
     }
     private void launch() throws Exception {
         // ActivityScenario waits for UI idleness; continuously animated WebViews need direct lifecycle observation.
+        java.util.Set<android.app.Activity> previous = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> previous.addAll(ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)));
         Intent intent = new Intent(InstrumentationRegistry.getInstrumentation().getTargetContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         InstrumentationRegistry.getInstrumentation().getTargetContext().startActivity(intent);
         for (int i = 0; i < 100 && activity == null; i++) {
             InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
                 for (android.app.Activity candidate : ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)) {
-                    if (candidate instanceof MainActivity) activity = (MainActivity)candidate;
+                    if (candidate instanceof MainActivity && !candidate.isFinishing() && !previous.contains(candidate)) activity = (MainActivity)candidate;
                 }
             });
             Thread.sleep(100);
@@ -75,7 +77,7 @@ public class AppSmokeTest {
                 if ("true".equals(js("typeof startGame === 'function'"))) break;
                 Thread.sleep(200);
             }
-            js("startGame('Dating')");
+            js("startGame('Dating');window.touchLog=[];['pointerdown','pointermove','pointercancel','pointerup'].forEach(type=>document.addEventListener(type,e=>touchLog.push([type,e.clientX,e.clientY,e.target.className])))");
             JSONArray point = new JSONArray(js("(()=>{const r=document.querySelector('#deck .swipeCard:last-child .desc').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2,innerWidth]})()"));
             final float[] scale = {1};
             InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> scale[0] = findWeb(activity.getWindow().getDecorView()).getWidth() / (float)point.optDouble(2));
@@ -86,11 +88,44 @@ public class AppSmokeTest {
                 touch(MotionEvent.ACTION_MOVE, x + 145 * scale[0] * i / 8, y, down);
                 Thread.sleep(25);
             }
-            assertEquals("true", js("document.querySelector('#deck .swipeCard:last-child').classList.contains('dragging')"));
+            assertEquals(js("JSON.stringify({events:touchLog,w:innerWidth,h:innerHeight,mode:State.viewMode})"),"true", js("document.querySelector('#deck .swipeCard:last-child').classList.contains('dragging')"));
+            for (int i=0;i<20;i++) {
+                if ("true".equals(js("new DOMMatrix(getComputedStyle(document.querySelector('#deck .swipeCard:last-child')).transform).m41 > 130"))) break;
+                Thread.sleep(50);
+            }
             assertEquals("true", js("new DOMMatrix(getComputedStyle(document.querySelector('#deck .swipeCard:last-child')).transform).m41 > 130"));
             touch(MotionEvent.ACTION_UP, x + 145 * scale[0], y, down);
             Thread.sleep(300);
             assertEquals("1", js("State.index"));
+        } finally { InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.finish()); }
+    }
+    @Test public void adSwipeDismissesWithoutClickingItsChild() throws Exception {
+        launch();
+        java.util.concurrent.atomic.AtomicInteger clicks = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger cancels = new java.util.concurrent.atomic.AtomicInteger();
+        CountDownLatch dismissed = new CountDownLatch(1);
+        try {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+                SwipeDismissLayout card = new SwipeDismissLayout(activity);
+                android.widget.Button child = new android.widget.Button(activity);
+                child.setOnClickListener(v -> clicks.incrementAndGet());
+                child.setOnTouchListener((v,e) -> { if(e.getActionMasked()==MotionEvent.ACTION_CANCEL) cancels.incrementAndGet(); return false; });
+                card.addView(child, new ViewGroup.LayoutParams(400,500));
+                card.setOnDismiss(dismissed::countDown);
+                activity.addContentView(card,new ViewGroup.LayoutParams(400,500));
+                card.measure(View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(500,View.MeasureSpec.EXACTLY));
+                card.layout(0,0,400,500);
+                long down = SystemClock.uptimeMillis();
+                int[] actions = {MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP,MotionEvent.ACTION_DOWN,MotionEvent.ACTION_MOVE,MotionEvent.ACTION_MOVE,MotionEvent.ACTION_UP};
+                float[] xs = {20,20,20,100,220,220};
+                for(int i=0;i<actions.length;i++) {
+                    MotionEvent event=MotionEvent.obtain(down,down+i*25,actions[i],xs[i],200,0);
+                    card.dispatchTouchEvent(event); event.recycle();
+                }
+            });
+            assertTrue("Swipe dismissal did not finish",dismissed.await(3,TimeUnit.SECONDS));
+            assertEquals("Tap is preserved and swipe is never an ad click",1,clicks.get());
+            assertEquals("Swipe cancels the SDK child gesture",1,cancels.get());
         } finally { InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.finish()); }
     }
     @Test public void offlineAssetsNavigationPersistenceAndNativeBridge() throws Exception {

@@ -64,6 +64,8 @@ public class MainActivity extends ComponentActivity {
     private String language = "et";
     private TextView adAttribution;
     private Button adContinue;
+    private LinearLayout policyPanel;
+    private WebView policyWeb;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -105,6 +107,10 @@ public class MainActivity extends ComponentActivity {
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
+                if (request.isForMainFrame() && request.hasGesture() && isPolicyLink(uri)) {
+                    openPolicy(uri.getFragment());
+                    return true;
+                }
                 // Only the bundled document can access the bridge. External links leave the app.
                 if (request.isForMainFrame() && request.hasGesture()
                         && ("https".equals(uri.getScheme()) || "mailto".equals(uri.getScheme()))) {
@@ -122,6 +128,7 @@ public class MainActivity extends ComponentActivity {
         web.loadUrl(ORIGIN + "/assets/index.html");
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() {
+                if (policyPanel != null) { closePolicy(); return; }
                 if (adCard != null) { closeAd(true); return; }
                 web.evaluateJavascript("window.androidBack ? window.androidBack() : false", result -> {
                     if ("false".equals(result)) finish();
@@ -334,6 +341,64 @@ public class MainActivity extends ComponentActivity {
         configuration.setLocale(Locale.forLanguageTag(language));
         return createConfigurationContext(configuration).getString(id);
     }
+    private boolean isPolicyLink(Uri uri) {
+        return "https".equals(uri.getScheme()) && "jutumasin.com".equals(uri.getHost())
+            && ("/privacy.html".equals(uri.getPath()) || "/privacy".equals(uri.getPath()) || "/privacy/".equals(uri.getPath()));
+    }
+    private void openPolicy(String fragment) {
+        if (destroyed) return;
+        closeAd(true);
+        closePolicy();
+        policyPanel = new LinearLayout(this);
+        policyPanel.setOrientation(LinearLayout.VERTICAL);
+        policyPanel.setBackgroundColor(Color.rgb(16,22,29));
+        Button back = new Button(this);
+        back.setText(nativeText(R.string.close_policy));
+        back.setOnClickListener(v -> closePolicy());
+        policyPanel.addView(back,new LinearLayout.LayoutParams(-1,dp(52)));
+        policyWeb = new WebView(this);
+        policyWeb.setTag("policyWeb");
+        policyWeb.setBackgroundColor(Color.rgb(16,22,29));
+        // The policy is an offline, script-free document with no game bridge or storage access.
+        policyWeb.getSettings().setJavaScriptEnabled(false);
+        policyWeb.getSettings().setDomStorageEnabled(false);
+        policyWeb.getSettings().setAllowFileAccess(false);
+        policyWeb.getSettings().setAllowContentAccess(false);
+        policyWeb.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        WebViewAssetLoader assets = new WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/",new WebViewAssetLoader.AssetsPathHandler(this)).build();
+        policyWeb.setWebViewClient(new WebViewClient(){
+            @Override public WebResourceResponse shouldInterceptRequest(WebView view,WebResourceRequest request){
+                WebResourceResponse local=assets.shouldInterceptRequest(request.getUrl());
+                return local!=null ? local : new WebResourceResponse("text/plain","UTF-8",403,"Forbidden",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));
+            }
+            @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){
+                Uri uri=request.getUrl();
+                if (ORIGIN.equals(uri.getScheme()+"://"+uri.getAuthority()) && "/assets/privacy.html".equals(uri.getPath())) return false;
+                if (request.isForMainFrame() && request.hasGesture()) {
+                    if (isPolicyLink(uri)) { openPolicy(uri.getFragment()); return true; }
+                    if ("https".equals(uri.getScheme()) || "mailto".equals(uri.getScheme())) {
+                        try { startActivity(new Intent("mailto".equals(uri.getScheme()) ? Intent.ACTION_SENDTO : Intent.ACTION_VIEW,uri)); }
+                        catch(ActivityNotFoundException error){ toast(nativeText("mailto".equals(uri.getScheme()) ? R.string.email_missing : R.string.browser_missing)); }
+                    }
+                }
+                return true;
+            }
+        });
+        policyPanel.addView(policyWeb,new LinearLayout.LayoutParams(-1,0,1));
+        root.addView(policyPanel,new FrameLayout.LayoutParams(-1,-1));
+        Uri.Builder address=Uri.parse(ORIGIN+"/assets/privacy.html").buildUpon();
+        if(fragment!=null) address.fragment(fragment);
+        policyWeb.loadUrl(address.build().toString());
+    }
+    private void closePolicy(){
+        if(policyPanel==null) return;
+        root.removeView(policyPanel);
+        policyPanel.removeView(policyWeb);
+        policyWeb.destroy();
+        policyWeb=null;
+        policyPanel=null;
+    }
     private TextView label(String text, int size) {
         TextView view = new TextView(this);
         view.setText(text); view.setTextSize(size); view.setTextColor(Color.rgb(255, 233, 245));
@@ -341,10 +406,11 @@ public class MainActivity extends ComponentActivity {
     }
     private int dp(float value) { return Math.round(value * getResources().getDisplayMetrics().density); }
     private void toast(String message) { Toast.makeText(this, message, Toast.LENGTH_LONG).show(); }
-    @Override protected void onPause() { web.onPause(); super.onPause(); }
-    @Override protected void onResume() { super.onResume(); if (web != null) web.onResume(); }
+    @Override protected void onPause() { web.onPause(); if(policyWeb!=null) policyWeb.onPause(); super.onPause(); }
+    @Override protected void onResume() { super.onResume(); if (web != null) web.onResume(); if(policyWeb!=null) policyWeb.onResume(); }
     @Override protected void onDestroy() {
         destroyed = true;
+        closePolicy();
         closeAd(false);
         if (cachedAd != null) { cachedAd.destroy(); cachedAd = null; }
         web.removeJavascriptInterface("AndroidApp");

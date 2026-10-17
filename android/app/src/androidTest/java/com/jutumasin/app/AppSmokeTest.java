@@ -78,6 +78,9 @@ public class AppSmokeTest {
                 Thread.sleep(200);
             }
             js("startGame('Dating');window.touchLog=[];['pointerdown','pointermove','pointercancel','pointerup'].forEach(type=>document.addEventListener(type,e=>touchLog.push([type,e.clientX,e.clientY,e.target.className])))");
+            CountDownLatch frame=new CountDownLatch(1);
+            instrumentationFrame(frame);
+            assertTrue("Game must render before injecting touches",frame.await(10,TimeUnit.SECONDS));
             JSONArray point = new JSONArray(js("(()=>{const r=document.querySelector('#deck .swipeCard:last-child .desc').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2,innerWidth]})()"));
             final float[] scale = {1};
             InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> scale[0] = findWeb(activity.getWindow().getDecorView()).getWidth() / (float)point.optDouble(2));
@@ -98,6 +101,15 @@ public class AppSmokeTest {
             Thread.sleep(300);
             assertEquals("1", js("State.index"));
         } finally { InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.finish()); }
+    }
+    private void instrumentationFrame(CountDownLatch frame) {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            WebView web=findWeb(activity.getWindow().getDecorView());
+            web.requestFocus();
+            web.postVisualStateCallback(10,new WebView.VisualStateCallback(){
+                @Override public void onComplete(long id){ web.postOnAnimation(frame::countDown); }
+            });
+        });
     }
     @Test public void adSwipeDismissesWithoutClickingItsChild() throws Exception {
         launch();
@@ -155,6 +167,54 @@ public class AppSmokeTest {
             assertEquals("Email compose intent is dispatched, intercepted before opening or sending",1,monitor.getHits());
         } finally {
             instrumentation.removeMonitor(monitor);
+            instrumentation.runOnMainSync(() -> activity.finish());
+        }
+    }
+    @Test public void standardsOpenOfflineInsideAppAndBackKeepsGame() throws Exception {
+        launch();
+        android.app.Instrumentation instrumentation=InstrumentationRegistry.getInstrumentation();
+        android.app.Instrumentation.ActivityMonitor external=instrumentation.addMonitor(new android.content.IntentFilter(Intent.ACTION_VIEW),
+            new android.app.Instrumentation.ActivityResult(android.app.Activity.RESULT_CANCELED,null),true);
+        try {
+            for(int i=0;i<50;i++) {
+                if("true".equals(js("typeof startGame === 'function'"))) break;
+                Thread.sleep(100);
+            }
+            js("startGame('Dating');showScreen('about')");
+            instrumentation.runOnMainSync(() -> {
+                WebView web=findWeb(activity.getWindow().getDecorView());
+                web.getWebViewClient().shouldOverrideUrlLoading(web,new android.webkit.WebResourceRequest(){
+                    public android.net.Uri getUrl(){return android.net.Uri.parse("https://jutumasin.com/privacy.html#child-safety");}
+                    public boolean isForMainFrame(){return true;}
+                    public boolean isRedirect(){return false;}
+                    public boolean hasGesture(){return true;}
+                    public String getMethod(){return "GET";}
+                    public java.util.Map<String,String> getRequestHeaders(){return java.util.Collections.emptyMap();}
+                });
+            });
+            final boolean[] loaded={false};
+            for(int i=0;i<50 && !loaded[0];i++) {
+                instrumentation.runOnMainSync(() -> {
+                    WebView policy=activity.getWindow().getDecorView().findViewWithTag("policyWeb");
+                    loaded[0]=policy!=null && policy.getProgress()==100 && policy.getUrl().equals("https://appassets.androidplatform.net/assets/privacy.html#child-safety");
+                    if(policy!=null) assertFalse(policy.getSettings().getJavaScriptEnabled());
+                });
+                Thread.sleep(100);
+            }
+            assertTrue("Bundled policy must load without a browser or network",loaded[0]);
+            assertEquals("No external browser intent",0,external.getHits());
+            String policy;
+            try(java.io.InputStream stream=activity.getAssets().open("privacy.html")) {
+                policy=new String(stream.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);
+            }
+            assertTrue(policy.contains("renno.east@hotmail.com"));
+            assertTrue(policy.contains("Reporting a concern"));
+            instrumentation.runOnMainSync(() -> activity.getOnBackPressedDispatcher().onBackPressed());
+            instrumentation.runOnMainSync(() -> assertNull(activity.getWindow().getDecorView().findViewWithTag("policyWeb")));
+            assertEquals("\"about\"",js("State.viewMode"));
+            assertEquals("0",js("State.index"));
+        } finally {
+            instrumentation.removeMonitor(external);
             instrumentation.runOnMainSync(() -> activity.finish());
         }
     }

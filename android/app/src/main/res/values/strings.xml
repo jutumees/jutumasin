@@ -4,4 +4,5 @@
     <string name="browser_missing">Veebibrauserit ei leitud.</string>
     <string name="privacy_error">Privaatsusseadeid ei saanud avada. Proovi hiljem uuesti.</string>
     <string name="email_missing">E-posti rakendust ei leitud. Kirjuta aadressile renno.east@hotmail.com.</string>
+    <string name="close_policy">← Tagasi mängu</string>
 </resources>

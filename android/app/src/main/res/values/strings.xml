@@ -3,4 +3,5 @@
     <string name="ad_label">Reklaam</string>
     <string name="browser_missing">Veebibrauserit ei leitud.</string>
     <string name="privacy_error">Privaatsusseadeid ei saanud avada. Proovi hiljem uuesti.</string>
+    <string name="email_missing">E-posti rakendust ei leitud. Kirjuta aadressile renno.east@hotmail.com.</string>
 </resources>

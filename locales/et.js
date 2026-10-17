@@ -2,6 +2,10 @@
 window.JUTUMASIN_LOCALES = window.JUTUMASIN_LOCALES || {};
 window.JUTUMASIN_LOCALES.et = {
   ui: {
+    "childSafetyTitle": "Laste turvalisus",
+    "childSafetyReport": "Teata laste turvalisuse murest",
+    "childSafetyInfo": "Laste seksuaalne väärkohtlemine ja ärakasutamine on keelatud. Murest saad teatada alloleval e-posti aadressil. Ära lisa ebaseaduslikke pilte ega videoid.",
+    "childSafetyStandards": "Laste turvalisuse standardid",
     "webPrivacyOptions": "Privaatsus- ja küpsiseseaded",
     "home": "Avaleht",
     "language": "English",

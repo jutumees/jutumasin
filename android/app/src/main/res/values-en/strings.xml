@@ -3,4 +3,5 @@
     <string name="ad_label">Advertisement</string>
     <string name="browser_missing">No web browser found.</string>
     <string name="privacy_error">Unable to open privacy settings. Please try again later.</string>
+    <string name="email_missing">No email app found. Write to renno.east@hotmail.com.</string>
 </resources>

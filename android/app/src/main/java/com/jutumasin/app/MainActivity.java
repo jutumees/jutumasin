@@ -106,9 +106,10 @@ public class MainActivity extends ComponentActivity {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
                 // Only the bundled document can access the bridge. External links leave the app.
-                if (request.isForMainFrame() && request.hasGesture() && "https".equals(uri.getScheme())) {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, uri)); }
-                    catch (ActivityNotFoundException error) { toast(nativeText(R.string.browser_missing)); }
+                if (request.isForMainFrame() && request.hasGesture()
+                        && ("https".equals(uri.getScheme()) || "mailto".equals(uri.getScheme()))) {
+                    try { startActivity(new Intent("mailto".equals(uri.getScheme()) ? Intent.ACTION_SENDTO : Intent.ACTION_VIEW, uri)); }
+                    catch (ActivityNotFoundException error) { toast(nativeText("mailto".equals(uri.getScheme()) ? R.string.email_missing : R.string.browser_missing)); }
                 }
                 return true;
             }

@@ -28,6 +28,12 @@ const server=http.createServer((req,res)=>{
   assert(await page.getByRole('heading',{name:'Start HERE'}).isVisible());
   await page.locator('#aboutBtn').click();
   assert((await page.locator('#aboutScreen').innerText()).includes('Recommended for ages 18+'));
+  assert((await page.locator('#aboutScreen').innerText()).includes('renno.east@hotmail.com'));
+  assert.equal(await page.locator('#childSafetyReport').textContent(),'Report a child safety concern');
+  assert((await page.locator('#childSafetyReport').getAttribute('href')).startsWith('mailto:renno.east@hotmail.com?subject='));
+  await toggle.click();
+  assert.equal(await page.locator('#childSafetyReport').textContent(),'Teata laste turvalisuse murest');
+  await toggle.click();
   assert(!(await page.locator('#aboutScreen').innerText()).includes('saved on this device'));
   assert.equal(await page.locator('#aboutScreen a[data-i18n="privacyPolicy"]').textContent(),'Chatmachine OÜ · Privacy policy');
   await page.locator('#btnMenu').click();

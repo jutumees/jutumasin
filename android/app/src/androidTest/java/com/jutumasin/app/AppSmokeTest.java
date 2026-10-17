@@ -128,6 +128,36 @@ public class AppSmokeTest {
             assertEquals("Swipe cancels the SDK child gesture",1,cancels.get());
         } finally { InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.finish()); }
     }
+    @Test public void childSafetyEmailOpensComposeWithoutSending() throws Exception {
+        launch();
+        android.content.IntentFilter filter = new android.content.IntentFilter(Intent.ACTION_SENDTO);
+        filter.addDataScheme("mailto");
+        android.app.Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        android.app.Instrumentation.ActivityMonitor monitor = instrumentation.addMonitor(filter,
+            new android.app.Instrumentation.ActivityResult(android.app.Activity.RESULT_CANCELED,null),true);
+        try {
+            for(int i=0;i<50;i++) {
+                if("true".equals(js("!!document.getElementById('childSafetyReport')"))) break;
+                Thread.sleep(100);
+            }
+            assertEquals("true",js("document.getElementById('childSafetyReport').href.startsWith('mailto:renno.east@hotmail.com')"));
+            instrumentation.runOnMainSync(() -> {
+                WebView web=findWeb(activity.getWindow().getDecorView());
+                web.getWebViewClient().shouldOverrideUrlLoading(web,new android.webkit.WebResourceRequest(){
+                    public android.net.Uri getUrl(){return android.net.Uri.parse("mailto:renno.east@hotmail.com?subject=Jutumasin%20child%20safety%20report");}
+                    public boolean isForMainFrame(){return true;}
+                    public boolean isRedirect(){return false;}
+                    public boolean hasGesture(){return true;}
+                    public String getMethod(){return "GET";}
+                    public java.util.Map<String,String> getRequestHeaders(){return java.util.Collections.emptyMap();}
+                });
+            });
+            assertEquals("Email compose intent is dispatched, intercepted before opening or sending",1,monitor.getHits());
+        } finally {
+            instrumentation.removeMonitor(monitor);
+            instrumentation.runOnMainSync(() -> activity.finish());
+        }
+    }
     @Test public void offlineAssetsNavigationPersistenceAndNativeBridge() throws Exception {
         launch();
         try {

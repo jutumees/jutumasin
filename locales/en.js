@@ -2,6 +2,10 @@
 window.JUTUMASIN_LOCALES = window.JUTUMASIN_LOCALES || {};
 window.JUTUMASIN_LOCALES.en = {
   ui: {
+    "childSafetyTitle": "Child safety",
+    "childSafetyReport": "Report a child safety concern",
+    "childSafetyInfo": "Child sexual abuse and exploitation are prohibited. Report concerns using the email address below. Do not attach illegal images or videos.",
+    "childSafetyStandards": "Child safety standards",
     "webPrivacyOptions": "Privacy and cookie settings",
     "home": "Home",
     "language": "Eesti",

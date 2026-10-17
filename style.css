@@ -297,6 +297,8 @@ body[data-view="menu"] .menuWrap{ min-height:0; }
   cursor:grabbing;
 }
 .inner{
+  /* This scroll container must not take touch gestures away from card dragging. */
+  touch-action:none;
   height:100%;
   padding:26px 24px;
   display:flex; flex-direction:column;

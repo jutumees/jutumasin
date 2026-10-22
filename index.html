@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com https://www.gstatic.com https://www.googletagservices.com https://*.googleadservices.com https://*.adtrafficquality.google; connect-src https:; frame-src 'self' https:; media-src https:; object-src 'none'; base-uri 'none'" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23ff4da6%22/><text x=%2232%22 y=%2242%22 font-size=%2232%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22>JM</text></svg>">
   <title>Jutumasin</title>
-  <link rel="stylesheet" href="style.css?v=edbf1ee406a1" />
+  <link rel="stylesheet" href="style.css?v=8af45251a490" />
 </head>
 
 <body data-view="menu">
@@ -61,6 +61,13 @@
                 <label for="ideaText" data-i18n="ideaText">Kaarditekst</label>
                 <textarea id="ideaText" rows="5" maxlength="720" required aria-describedby="ideaCount ideaNotice"></textarea>
                 <output id="ideaCount" for="ideaText">0 / 360</output>
+                <label for="ideaNickname" data-i18n="ideaNickname">Hüüdnimi (valikuline)</label>
+                <input id="ideaNickname" type="text" maxlength="48" autocomplete="off" aria-describedby="ideaNicknameHelp">
+                <p id="ideaNicknameHelp" data-i18n="ideaNicknameHelp">Kuni 24 märki. Kasuta väljamõeldud nime; tühjaks jättes jääd anonüümseks.</p>
+                <label class="ideaCreditLabel" for="ideaCredit">
+                  <input id="ideaCredit" type="checkbox">
+                  <span data-i18n="ideaCredit">Soovin, et minu hüüdnimi kuvatakse kaardi juures.</span>
+                </label>
                 <p id="ideaNotice" data-i18n="ideaNotice">Ära lisa isikuandmeid.</p>
                 <button class="ctrl" id="ideaSend" type="submit" data-i18n="ideaSend">Saada idee</button>
                 <p id="ideaStatus" role="status" aria-live="polite"></p>
@@ -104,14 +111,14 @@
   </div>
 
   <script src="version.js?v=2b78055ea3f1"></script>
-  <script src="locales/et.js?v=81ca171a5d4f"></script>
-  <script src="locales/en.js?v=b05f72d7a8e7"></script>
+  <script src="locales/et.js?v=2ecba784ab2e"></script>
+  <script src="locales/en.js?v=f88042464df8"></script>
   <script src="locales/legacy.js?v=8e3f7b459a74"></script>
   <script src="i18n.js?v=69bfab1045c2"></script>
   <script src="decks.js?v=d275f28af958"></script>
   <script src="ad-cadence.js?v=3b2a4ff8240c"></script>
   <script src="game.js?v=95274004cf8c"></script>
-  <script src="card-idea.js?v=7ae57a3dc95f"></script>
+  <script src="card-idea.js?v=12a2fd1dfcf3"></script>
   <script src="web-ads.js?v=04b1fa036f73"></script>
 </body>
 </html>

@@ -63,7 +63,7 @@ const server = http.createServer((req, res) => {
     await submit(); assert.equal(requests.length, 0);
     await page.locator('#ideaType').selectOption('Party');
     await submit(); await status('ideaSuccess');
-    assert.equal(requests[0].content, 'Jutumasin · Party\n' + 'x'.repeat(360));
+    assert.equal(requests[0].content, 'Jutumasin · Party\n' + 'x'.repeat(360) + '\n\nNickname: (anonymous)\nPublish nickname with card: NO');
     assert.equal(await input.inputValue(), '');
     await input.fill('Another idea'); await submit(); await status('ideaWait');
     assert.equal(requests.length, 1);
@@ -96,6 +96,37 @@ const server = http.createServer((req, res) => {
     await page.locator('#languageToggle').click();
     assert.equal(await page.locator('.cardIdea summary').textContent(), 'Send your card idea');
     assert.equal(await page.locator('#ideaStatus').textContent(), 'Thank you! Your card idea has been sent.');
+    const nickname = page.locator('#ideaNickname');
+    const credit = page.locator('#ideaCredit');
+    assert.equal(await page.locator('label[for="ideaNickname"]').textContent(), 'Nickname (optional)');
+    assert.equal(await page.locator('[data-i18n="ideaCredit"]').textContent(), 'I would like my nickname to appear alongside the card.');
+    await open();
+    assert.equal(await credit.isChecked(), false);
+    await input.fill('A new idea');
+    const beforeInvalid = requests.length;
+    for (const name of ['x'.repeat(25), 'hidden\u202ename']) {
+      await nickname.fill(name); await submit(); await status('ideaNicknameInvalid');
+    }
+    await nickname.fill(''); await credit.check();
+    await submit(); await status('ideaNicknameInvalid');
+    assert.equal(requests.length, beforeInvalid);
+    await nickname.fill('😀'.repeat(24));
+    mode = 'error'; await submit(); await status('ideaError');
+    assert.equal(await nickname.inputValue(), '😀'.repeat(24));
+    assert.equal(await credit.isChecked(), true);
+    mode = 'success'; await submit(); await status('ideaSuccess');
+    assert(requests.at(-1).content.includes('Nickname: ' + '😀'.repeat(24)));
+    assert(requests.at(-1).content.endsWith('Publish nickname with card: YES'));
+    assert.equal(await nickname.inputValue(), '');
+    assert.equal(await credit.isChecked(), false);
+    await open(); await input.fill('Another suggestion');
+    await nickname.fill('@everyone **Name**');
+    await submit(); await status('ideaSuccess');
+    assert(requests.at(-1).content.includes('Nickname: @everyone \\*\\*Name\\*\\*'));
+    assert(requests.at(-1).content.endsWith('Publish nickname with card: NO'));
+    assert.deepEqual(requests.at(-1).allowed_mentions, {parse:[]});
+    await nickname.fill('Kaardisõber');
+    await page.locator('#ideaSend').scrollIntoViewIfNeeded();
     await page.screenshot({path:path.join(root,'test-results/card-idea-mobile.png'),fullPage:true});
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     assert.deepEqual(errors, []);

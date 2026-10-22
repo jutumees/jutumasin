@@ -402,11 +402,13 @@ button.ctrl[disabled]{opacity:.45; cursor:default}
 .cardIdea{max-width:480px;margin:20px auto;text-align:left;font-weight:500;color-scheme:dark}
 .cardIdea summary{cursor:pointer;text-align:center;text-decoration:underline;font-weight:900;padding:8px}
 .cardIdea form{display:grid;gap:10px;margin-top:16px}
-.cardIdea select,.cardIdea textarea{box-sizing:border-box;width:100%;min-width:0;border:1px solid rgba(255,77,166,.5);border-radius:10px;background:#211622;color:var(--text);font:inherit;padding:12px;user-select:text;-webkit-user-select:text}
+.cardIdea select,.cardIdea textarea,.cardIdea input[type="text"]{box-sizing:border-box;width:100%;min-width:0;border:1px solid rgba(255,77,166,.5);border-radius:10px;background:#211622;color:var(--text);font:inherit;padding:12px;user-select:text;-webkit-user-select:text}
+.ideaCreditLabel{display:flex;align-items:flex-start;gap:10px;line-height:1.5;padding:8px 0;cursor:pointer}
+.ideaCreditLabel input{flex:none;width:20px;height:20px;margin:2px 0;accent-color:var(--pink)}
 .cardIdea textarea{resize:vertical}
 .cardIdea :focus-visible{outline:2px solid var(--pink);outline-offset:3px}
 #ideaCount{text-align:right;font-size:14px}
-#ideaNotice,#ideaStatus{font-size:14px;line-height:1.5;margin:0}
+#ideaNotice,#ideaStatus,#ideaNicknameHelp{font-size:14px;line-height:1.5;margin:0}
 #ideaStatus:empty{display:none}
 
 /* Android phones, landscape and large system fonts must remain navigable. */

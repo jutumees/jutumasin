@@ -5,7 +5,7 @@ window.JUTUMASIN_LOCALES.et = {
     "ideaLink": "Saada oma kaardiidee",
     "ideaType": "Kaarditüüp",
     "ideaText": "Kaarditekst",
-    "ideaNotice": "Kaarditüüp ja tekst saadetakse Discordi. Ära lisa isikuandmeid.",
+    "ideaNotice": "Ära lisa isikuandmeid.",
     "ideaSend": "Saada idee",
     "ideaInvalid": "Sisesta 1–360 märki tavalist teksti ilma peidetud juhtmärkideta.",
     "ideaSending": "Saadan…",

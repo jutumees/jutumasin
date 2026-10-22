@@ -5,7 +5,7 @@ window.JUTUMASIN_LOCALES.en = {
     "ideaLink": "Send your card idea",
     "ideaType": "Card type",
     "ideaText": "Card text",
-    "ideaNotice": "The card type and text will be sent to Discord. Do not include personal information.",
+    "ideaNotice": "Do not include personal information.",
     "ideaSend": "Send idea",
     "ideaInvalid": "Enter 1–360 characters of plain text without hidden control characters.",
     "ideaSending": "Sending…",

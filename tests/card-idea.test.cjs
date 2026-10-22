@@ -42,6 +42,16 @@ const server = http.createServer((req, res) => {
     const submit = () => page.locator('#cardIdeaForm').evaluate(form => form.dispatchEvent(new Event('submit', {bubbles:true,cancelable:true})));
     const status = key => page.waitForFunction(key => document.getElementById('ideaStatus').dataset.i18n === key, key);
     await open();
+    assert.equal(await page.locator('#cardIdeaForm').evaluate(el => getComputedStyle(el).display), 'grid');
+    assert.equal(await page.locator('#ideaText').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(33, 22, 34)');
+    assert.equal(await page.locator('#ideaType').evaluate(el => getComputedStyle(el).colorScheme), 'dark');
+    assert.equal(await page.locator('#aboutScreen a[href*="github.com"]').count(), 0);
+    const version = page.locator('#aboutScreen [data-app-version]');
+    assert.equal(await version.textContent(), await page.evaluate(() => I18n.t('version', APP_VERSION)));
+    const versionBox = await version.boundingBox();
+    const controlsBox = await page.locator('#controls').boundingBox();
+    assert(versionBox.y >= 0 && versionBox.y + versionBox.height <= controlsBox.y);
+    assert(await page.locator('script[src],link[rel="stylesheet"]').evaluateAll(nodes => nodes.every(node => /\?v=[a-f0-9]{12}$/.test(node.getAttribute('src') || node.getAttribute('href')))));
     const input = page.locator('#ideaText');
     for (const text of ['   ', 'a'.repeat(361), 'bad\u0001text', 'bad\u202etext']) {
       await input.fill(text); await submit(); await status('ideaInvalid');

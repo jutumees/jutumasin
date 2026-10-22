@@ -399,7 +399,7 @@ button.ctrl[disabled]{opacity:.45; cursor:default}
 }
 .aboutCard a:hover{ border-bottom-color: rgba(255,255,255,.55); }
 .aboutCard > div{min-width:0;width:100%}
-.cardIdea{max-width:480px;margin:20px auto;text-align:left;font-weight:500}
+.cardIdea{max-width:480px;margin:20px auto;text-align:left;font-weight:500;color-scheme:dark}
 .cardIdea summary{cursor:pointer;text-align:center;text-decoration:underline;font-weight:900;padding:8px}
 .cardIdea form{display:grid;gap:10px;margin-top:16px}
 .cardIdea select,.cardIdea textarea{box-sizing:border-box;width:100%;min-width:0;border:1px solid rgba(255,77,166,.5);border-radius:10px;background:#211622;color:var(--text);font:inherit;padding:12px;user-select:text;-webkit-user-select:text}
@@ -412,7 +412,9 @@ button.ctrl[disabled]{opacity:.45; cursor:default}
 /* Android phones, landscape and large system fonts must remain navigable. */
 body[data-view="menu"] #menuScreen.active{overflow-y:auto}
 body[data-view="menu"] .menuWrap{flex:0 0 auto;min-height:100%}
-#aboutScreen{overflow-y:auto}
+#aboutScreen{overflow:hidden}
+#aboutScreen .aboutCard{flex:1;min-height:0;overflow-y:auto;align-items:flex-start}
+.aboutVersion{flex:none;text-align:center;margin:0}
 .adActive .swipeCard{visibility:hidden;pointer-events:none}
 .controls{gap:8px}
 button.ctrl{min-width:0;flex:1;padding:12px 8px}

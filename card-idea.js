@@ -6,7 +6,6 @@
   const input = document.getElementById('ideaText');
   const count = document.getElementById('ideaCount');
   const nickname = document.getElementById('ideaNickname');
-  const credit = document.getElementById('ideaCredit');
   const send = document.getElementById('ideaSend');
   const status = document.getElementById('ideaStatus');
   let pending = false;
@@ -26,15 +25,13 @@
     const valid = length <= 360 && input.value.trim().length > 0 && !invalid;
     input.setCustomValidity(valid ? '' : I18n.t('ideaInvalid'));
     const nameValid = Array.from(nickname.value).length <= 24
-      && !hiddenControls.test(nickname.value) && !/[\r\n\t]/.test(nickname.value)
-      && (!credit.checked || nickname.value.trim().length > 0);
+      && !hiddenControls.test(nickname.value) && !/[\r\n\t]/.test(nickname.value);
     nickname.setCustomValidity(nameValid ? '' : I18n.t('ideaNicknameInvalid'));
     if (!valid || !['Dating', 'Spicy', 'Couples', 'Party'].includes(type.value)) return 'ideaInvalid';
     return nameValid ? '' : 'ideaNicknameInvalid';
   }
   input.addEventListener('input', validate);
   nickname.addEventListener('input', validate);
-  credit.addEventListener('change', validate);
   document.getElementById('languageToggle').addEventListener('click', validate);
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -45,7 +42,7 @@
     // User text is never parsed as JSON, HTML or code. Escape Discord formatting.
     const text = plainText(input.value.trim());
     const name = nickname.value.trim();
-    const attribution = `\n\nNickname: ${name ? plainText(name) : '(anonymous)'}\nPublish nickname with card: ${credit.checked ? 'YES' : 'NO'}`;
+    const attribution = `\n\nNickname: ${name ? plainText(name) : '(anonymous)'}\nPublish nickname with card: ${name ? 'YES' : 'NO'}`;
     const payload = {
       content: `Jutumasin · ${type.value}\n${text}${attribution}`,
       allowed_mentions: {parse: []},
@@ -53,7 +50,7 @@
       tts: false
     };
     pending = true;
-    send.disabled = type.disabled = input.disabled = nickname.disabled = credit.disabled = true;
+    send.disabled = type.disabled = input.disabled = nickname.disabled = true;
     message('ideaSending');
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
@@ -75,7 +72,6 @@
         nextSend = Date.now() + 30000;
         input.value = '';
         nickname.value = '';
-        credit.checked = false;
         nickname.setCustomValidity('');
         count.textContent = '0 / 360';
         input.setCustomValidity('');
@@ -88,7 +84,7 @@
     } finally {
       clearTimeout(timeout);
       pending = false;
-      send.disabled = type.disabled = input.disabled = nickname.disabled = credit.disabled = false;
+      send.disabled = type.disabled = input.disabled = nickname.disabled = false;
     }
   });
 })();

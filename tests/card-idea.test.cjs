@@ -97,33 +97,28 @@ const server = http.createServer((req, res) => {
     assert.equal(await page.locator('.cardIdea summary').textContent(), 'Send your card idea');
     assert.equal(await page.locator('#ideaStatus').textContent(), 'Thank you! Your card idea has been sent.');
     const nickname = page.locator('#ideaNickname');
-    const credit = page.locator('#ideaCredit');
+    assert.equal(await page.locator('#ideaCredit').count(), 0);
     assert.equal(await page.locator('label[for="ideaNickname"]').textContent(), 'Nickname (optional)');
-    assert.equal(await page.locator('[data-i18n="ideaCredit"]').textContent(), 'I would like my nickname to appear alongside the card.');
+    assert((await page.locator('#ideaNicknameHelp').textContent()).includes('We may display your nickname alongside the card.'));
     await open();
-    assert.equal(await credit.isChecked(), false);
     await input.fill('A new idea');
     const beforeInvalid = requests.length;
     for (const name of ['x'.repeat(25), 'hidden\u202ename']) {
       await nickname.fill(name); await submit(); await status('ideaNicknameInvalid');
     }
-    await nickname.fill(''); await credit.check();
-    await submit(); await status('ideaNicknameInvalid');
     assert.equal(requests.length, beforeInvalid);
     await nickname.fill('😀'.repeat(24));
     mode = 'error'; await submit(); await status('ideaError');
     assert.equal(await nickname.inputValue(), '😀'.repeat(24));
-    assert.equal(await credit.isChecked(), true);
     mode = 'success'; await submit(); await status('ideaSuccess');
     assert(requests.at(-1).content.includes('Nickname: ' + '😀'.repeat(24)));
     assert(requests.at(-1).content.endsWith('Publish nickname with card: YES'));
     assert.equal(await nickname.inputValue(), '');
-    assert.equal(await credit.isChecked(), false);
     await open(); await input.fill('Another suggestion');
     await nickname.fill('@everyone **Name**');
     await submit(); await status('ideaSuccess');
     assert(requests.at(-1).content.includes('Nickname: @everyone \\*\\*Name\\*\\*'));
-    assert(requests.at(-1).content.endsWith('Publish nickname with card: NO'));
+    assert(requests.at(-1).content.endsWith('Publish nickname with card: YES'));
     assert.deepEqual(requests.at(-1).allowed_mentions, {parse:[]});
     await nickname.fill('Kaardisõber');
     await page.locator('#ideaSend').scrollIntoViewIfNeeded();

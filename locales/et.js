@@ -2,6 +2,16 @@
 window.JUTUMASIN_LOCALES = window.JUTUMASIN_LOCALES || {};
 window.JUTUMASIN_LOCALES.et = {
   ui: {
+    "ideaLink": "Saada oma kaardiidee",
+    "ideaType": "Kaarditüüp",
+    "ideaText": "Kaarditekst",
+    "ideaNotice": "Kaarditüüp ja tekst saadetakse Discordi. Ära lisa isikuandmeid.",
+    "ideaSend": "Saada idee",
+    "ideaInvalid": "Sisesta 1–360 märki tavalist teksti ilma peidetud juhtmärkideta.",
+    "ideaSending": "Saadan…",
+    "ideaSuccess": "Aitäh! Sinu kaardiidee on saadetud.",
+    "ideaError": "Saatmist ei õnnestunud kinnitada. Tekst jäi alles. Kontrolli ühendust ja proovi hiljem uuesti.",
+    "ideaWait": "Palun oota enne järgmise idee saatmist veidi ja proovi uuesti.",
     "childSafetyStandards": "Laste turvalisuse standardid",
     "webPrivacyOptions": "Privaatsus- ja küpsiseseaded",
     "home": "Avaleht",

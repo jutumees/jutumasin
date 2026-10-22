@@ -56,7 +56,7 @@ android {
 
 tasks.register('syncGameAssets', Sync) {
     from('../..') {
-        include 'privacy.html', 'privacy.css', 'index.html', 'style.css', 'game.js', 'decks.js', 'ad-cadence.js', 'version.js', 'i18n.js', 'web-ads.js', 'app-ads.txt', 'locales/**', 'assets/**'
+        include 'privacy.html', 'privacy.css', 'index.html', 'style.css', 'game.js', 'card-idea.js', 'decks.js', 'ad-cadence.js', 'version.js', 'i18n.js', 'web-ads.js', 'app-ads.txt', 'locales/**', 'assets/**'
     }
     into layout.buildDirectory.dir('generated/gameAssets')
 }

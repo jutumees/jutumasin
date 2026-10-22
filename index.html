@@ -52,6 +52,22 @@
             <button class="ctrl" id="privacyOptions" data-i18n="privacyOptions" hidden>Reklaamide privaatsusseaded</button>
             <p><a href="https://jutumasin.com/privacy.html" data-i18n="privacyPolicy">Chatmachine OÜ · Privaatsuspoliitika</a></p>
             <p><a id="childSafetyStandards" href="https://jutumasin.com/privacy.html#child-safety" data-i18n="childSafetyStandards">Laste turvalisuse standardid</a></p>
+            <details class="cardIdea">
+              <summary data-i18n="ideaLink">Saada oma kaardiidee</summary>
+              <form id="cardIdeaForm">
+                <label for="ideaType" data-i18n="ideaType">Kaarditüüp</label>
+                <select id="ideaType" required>
+                  <option value="Dating">Dating</option><option value="Spicy">Spicy</option>
+                  <option value="Couples">Couples</option><option value="Party">Party</option>
+                </select>
+                <label for="ideaText" data-i18n="ideaText">Kaarditekst</label>
+                <textarea id="ideaText" rows="5" maxlength="720" required aria-describedby="ideaCount ideaNotice"></textarea>
+                <output id="ideaCount" for="ideaText">0 / 360</output>
+                <p id="ideaNotice" data-i18n="ideaNotice">Kaarditüüp ja tekst saadetakse Discordi. Ära lisa isikuandmeid.</p>
+                <button class="ctrl" id="ideaSend" type="submit" data-i18n="ideaSend">Saada idee</button>
+                <p id="ideaStatus" role="status" aria-live="polite"></p>
+              </form>
+            </details>
             <p class="version" data-app-version></p>
           </div>
         </div>
@@ -97,6 +113,7 @@
   <script src="decks.js"></script>
   <script src="ad-cadence.js"></script>
   <script src="game.js"></script>
+  <script src="card-idea.js"></script>
   <script src="web-ads.js"></script>
 </body>
 </html>

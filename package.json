@@ -2,8 +2,11 @@
   "name": "jutumasin",
   "private": true,
   "scripts": {
-    "test": "node --test tests/cadence.test.cjs tests/locales.test.cjs && node tests/game.test.cjs && node tests/gestures.test.cjs && node tests/language.test.cjs && node tests/web-ads.test.cjs",
+    "test": "node --test tests/cadence.test.cjs tests/locales.test.cjs && node tests/game.test.cjs && node tests/gestures.test.cjs && node tests/language.test.cjs && node tests/web-ads.test.cjs && node tests/card-idea.test.cjs",
     "android:branding": "node scripts/android-branding.cjs"
   },
-  "devDependencies": { "playwright": "1.62.1", "sharp": "0.35.5" }
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "sharp": "0.35.5"
+  }
 }

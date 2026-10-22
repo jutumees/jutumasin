@@ -2,6 +2,16 @@
 window.JUTUMASIN_LOCALES = window.JUTUMASIN_LOCALES || {};
 window.JUTUMASIN_LOCALES.en = {
   ui: {
+    "ideaLink": "Send your card idea",
+    "ideaType": "Card type",
+    "ideaText": "Card text",
+    "ideaNotice": "The card type and text will be sent to Discord. Do not include personal information.",
+    "ideaSend": "Send idea",
+    "ideaInvalid": "Enter 1–360 characters of plain text without hidden control characters.",
+    "ideaSending": "Sending…",
+    "ideaSuccess": "Thank you! Your card idea has been sent.",
+    "ideaError": "Delivery could not be confirmed. Your text is still here. Check your connection and try again later.",
+    "ideaWait": "Please wait a little before sending another idea and try again.",
     "childSafetyStandards": "Child safety standards",
     "webPrivacyOptions": "Privacy and cookie settings",
     "home": "Home",

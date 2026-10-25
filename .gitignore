@@ -7,3 +7,4 @@ android/signing.properties
 *.keystore
 node_modules/
 test-results/
+releases/

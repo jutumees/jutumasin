@@ -1,3 +1,9 @@
 plugins {
     id 'com.android.application' version '8.13.2' apply false
 }
+
+// The checkout is code/; generated files belong in the sibling tools/ folder.
+def buildStorage = providers.gradleProperty('jutumasinBuildRoot').getOrElse(file('../../tools/build').absolutePath)
+allprojects {
+    layout.buildDirectory.set(file("${buildStorage}/${project == rootProject ? 'root' : project.name}"))
+}

@@ -1,6 +1,6 @@
 plugins { id 'com.android.application' }
 
-def signingFile = rootProject.file('signing.properties')
+def signingFile = file(providers.gradleProperty('jutumasinSigningFile').getOrElse(rootProject.file('signing.properties').absolutePath))
 def signing = new Properties()
 if (signingFile.exists()) signingFile.withInputStream { signing.load(it) }
 
@@ -32,7 +32,7 @@ android {
     signingConfigs {
         if (signingFile.exists()) {
             production {
-                storeFile rootProject.file(signing.storeFile)
+                storeFile new File(signingFile.parentFile, signing.storeFile)
                 storePassword signing.storePassword
                 keyAlias signing.keyAlias
                 keyPassword signing.keyPassword

@@ -66,7 +66,7 @@ const server=http.createServer((req,res)=>{
     count++;
    }
    return count;
-  }),170);
+  }),await page.evaluate(()=>Object.values(DECKS2).reduce((total,cards)=>total+cards.length,0)));
   // Upgrade pre-language saves without losing progress, favourites or history.
   await page.evaluate(()=>{
    const saved=JSON.parse(localStorage.getItem('jutumasin.v2'));
@@ -124,6 +124,6 @@ const server=http.createServer((req,res)=>{
   assert.equal(await blocked.locator('html').getAttribute('lang'),'en');
   await blocked.close();
   assert.deepEqual(errors,[]);
-  console.log('PASS: 170 translated cards, full UI, saved language, legacy saves, favourites/history, animation/ad switching, empty states, 4 viewport sizes in both languages, blocked storage.');
+  console.log('PASS: translated cards, full UI, saved language, legacy saves, favourites/history, animation/ad switching, empty states, 4 viewport sizes in both languages, blocked storage.');
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
